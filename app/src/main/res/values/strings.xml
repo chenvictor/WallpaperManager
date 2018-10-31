@@ -1,12 +1,30 @@
 <resources>
     <string name="app_name">WallpaperManager</string>
 
+    <string-array name="generic_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <!-- Wallpaper -->
+    <string-array name="wallpaper_interval_type_spinner">
+        <item>minutes</item>
+        <item>hours</item>
+        <item>days</item>
+    </string-array>
+
     <!-- Albums -->
 
     <string name="albums_group_by_prompt">Group by:</string>
     <string-array name="albums_type_spinner">
         <item>Folder</item>
         <item>Tag</item>
+    </string-array>
+    <string-array name="image_fit_type">
+        <item>Fill</item>
+        <item>Fit</item>
+        <item>Stretch</item>
     </string-array>
 
     <string name="folder_title">%s (%d images)</string>
@@ -19,4 +37,13 @@
     <string name="placeholder_string">placeholder</string>
     <string name="confirm">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="pref_key_random_order">RANDOM_ORDER_KEY</string>
+    <string name="title_home_screen">Home screen</string>
+    <string name="header_album">Album</string>
+    <string name="header_interval">Change wallpaper every</string>
+    <string name="header_doubletap">Change wallpaper when double-tapping on home screen</string>
+    <string name="title_lockscreen">Lock screen</string>
+    <string name="text_mirror_homescreen">Use home screen</string>
+    <string name="content_desc_homescreen_preview">Home screen wallpaper preview</string>
+    <string name="content_desc_lockscreen_preview">Lock screen wallpaper preview</string>
 </resources>

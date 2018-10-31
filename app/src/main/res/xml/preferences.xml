@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="General">
-        <Preference android:title="Root Folder"
-            android:key="@string/pref_key_root_folder"
-            android:defaultValue="@string/pref_root_folder_null"
-            android:summary="summary"/>
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Security">
+    <Preference android:title="Root Folder"
+        android:key="@string/pref_key_root_folder"
+        android:defaultValue="@string/pref_root_folder_null"
+        android:summary="summary"/>
 
-    </PreferenceCategory>
+    <ListPreference
+        android:defaultValue="1"
+        android:entries="@array/image_fit_type"
+        android:entryValues="@array/generic_values"
+        android:key="KEY_IMAGE_FIT_TYPE"
+        android:title="Image Position"
+        android:summary="summary"/>
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="@string/pref_key_random_order"
+        android:title="Random wallpaper order" />
 </PreferenceScreen>
