@@ -15,12 +15,18 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.utils.FilterUtils;
 
 public class FolderAdapter extends RecyclerView.Adapter {
 
+    private static final boolean SORT_ALPHABETICAL = false;
+
     private Activity mActivity;
+    private File root;
     private File[] folders = {};
 
     private LruCache<Integer, Bitmap> imageCache;
@@ -28,11 +34,26 @@ public class FolderAdapter extends RecyclerView.Adapter {
     FolderAdapter(Activity activity, String rootPath) {
         mActivity = activity;
         if (rootPath != null) {
-            File file = new File(rootPath);
-            folders = file.listFiles(new FilenameFilter() {
+            root = new File(rootPath);
+            folders = root.listFiles(FilterUtils.get(FilterUtils.FOLDER));
+            if (FilterUtils.containsImages(root)) {
+                folders = Arrays.copyOf(folders, folders.length + 1);
+                folders[folders.length - 1] = root;
+            }
+            Arrays.sort(folders, new Comparator<File>() {
                 @Override
-                public boolean accept(File file, String s) {
-                    return new File(file, s).isDirectory();
+                public int compare(File file, File t1) {
+                    if (file.equals(root)) {
+                        return -1;
+                    }
+                    if (t1.equals(root)) {
+                        return 1;
+                    }
+                    if (SORT_ALPHABETICAL) {
+                        return file.getName().compareToIgnoreCase(t1.getName());
+                    } else {
+                        return 0;
+                    }
                 }
             });
         }
@@ -78,16 +99,16 @@ public class FolderAdapter extends RecyclerView.Adapter {
         View view = viewHolder.itemView;
         TextView folderName = view.findViewById(R.id.folder_name);
         ImageView folderPreview = view.findViewById(R.id.folder_preview);
-        File[] images = folders[i].listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File file, String s) {
-                return s.endsWith(".png") || s.endsWith(".jpg");
-            }
-        });
+        File folder = folders[i];
+        File[] images = folder.listFiles(FilterUtils.get(FilterUtils.IMAGE));
         if (images.length > 0) {
             loadBitmap(i, folderPreview, images[0]);
         }
-        folderName.setText(mActivity.getString(R.string.folder_title, folders[i].getName(), images.length));
+        if (folder.equals(root)) {
+            folderName.setText(mActivity.getString(R.string.folder_title, "Root", images.length));
+        } else {
+            folderName.setText(mActivity.getString(R.string.folder_title, folder.getName(), images.length));
+        }
     }
 
 
