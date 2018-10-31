@@ -34,6 +34,7 @@ public class AlbumsFragment extends Fragment {
         mRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
         mAdapter = new FolderAdapter(getActivity(), PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.pref_key_root_folder), null));
         mRecycler.setAdapter(mAdapter);
+        mRecycler.setHasFixedSize(true);
         return view;
     }
 

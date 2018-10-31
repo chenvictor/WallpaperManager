@@ -18,8 +18,9 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     private LruCache<Integer, Bitmap> cache;
     private CacheListener mListener;
 
-    public ImageCache(Bitmap placeholder, CacheListener listener) {
-        mPlaceholder = placeholder;
+    public ImageCache(CacheListener listener) {
+        mPlaceholder = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888);
+
         mListener = listener;
         cache = new LruCache<Integer, Bitmap>((int) Runtime.getRuntime().maxMemory() / (1024 * 8)) {
             @Override
