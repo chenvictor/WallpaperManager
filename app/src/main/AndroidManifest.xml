@@ -24,7 +24,7 @@
         </activity>
         <service
             android:label="WallpaperService"
-            android:name=".WPMService"
+            android:name=".service.WPMService"
             android:permission="android.permission.BIND_WALLPAPER">
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />

@@ -1,21 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Preference android:title="Root Folder"
-        android:key="@string/pref_key_root_folder"
-        android:defaultValue="@string/pref_root_folder_null"
-        android:summary="summary"/>
+    <!-- Wallpaper Screen Values -->
 
-    <ListPreference
-        android:defaultValue="1"
-        android:entries="@array/image_fit_type"
-        android:entryValues="@array/generic_values"
-        android:key="KEY_IMAGE_FIT_TYPE"
-        android:title="Image Position"
-        android:summary="summary"/>
+    <Preference
+        android:key="@string/key_wallpaper_interval_enabled"
+        android:defaultValue="1" />
 
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="@string/pref_key_random_order"
-        android:title="Random wallpaper order" />
+    <Preference
+        android:key="@string/key_wallpaper_interval_value"
+        android:defaultValue="1" />
+
+    <Preference
+        android:key="@string/key_wallpaper_interval_type"
+        android:defaultValue="1" />
+
+    <Preference
+        android:key="@string/key_wallpaper_home_album"
+        android:defaultValue="null" />
+
+    <Preference
+        android:key="@string/key_wallpaper_home_double_tap_enabled"
+        android:defaultValue="false" />
+
+    <Preference
+        android:key="@string/key_wallpaper_lock_use_home"
+        android:defaultValue="true" />
+
+    <Preference
+        android:key="@string/key_wallpaper_lock_album"
+        android:defaultValue="null" />
+
+    <Preference
+        android:key="@string/key_wallpaper_lock_blur"
+        android:defaultValue="false" />
+
+    <!-- Albums Screen Values -->
+    <Preference
+        android:key="@string/key_album_view_type"
+        android:defaultValue="0"/>
+
+    <!-- Preference Screen Values -->
+
+    <Preference
+        android:key="@string/key_root_folder"
+        android:defaultValue="null" />
+
+    <Preference
+        android:key="@string/key_position"
+        android:defaultValue="0" />
+
+    <Preference
+        android:key="@string/key_random_order_enabled"
+        android:defaultValue="false" />
 </PreferenceScreen>

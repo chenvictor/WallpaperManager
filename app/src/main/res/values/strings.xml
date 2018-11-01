@@ -1,12 +1,6 @@
 <resources>
     <string name="app_name">WallpaperManager</string>
 
-    <string-array name="generic_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
     <!-- Wallpaper -->
     <string-array name="wallpaper_interval_type_spinner">
         <item>minutes</item>
@@ -21,29 +15,50 @@
         <item>Folder</item>
         <item>Tag</item>
     </string-array>
-    <string-array name="image_fit_type">
-        <item>Fill</item>
-        <item>Fit</item>
-        <item>Stretch</item>
-    </string-array>
 
     <string name="folder_title">%s (%d images)</string>
 
-
     <!-- Preferences -->
-    <string name="pref_key_root_folder">ROOT_FOLDER_KEY</string>
-    <string name="pref_root_folder_null">NULL</string>
     <string name="folder_preview_image">Folder Preview Image</string>
     <string name="placeholder_string">placeholder</string>
     <string name="confirm">OK</string>
     <string name="cancel">Cancel</string>
-    <string name="pref_key_random_order">RANDOM_ORDER_KEY</string>
     <string name="title_home_screen">Home screen</string>
     <string name="header_album">Album</string>
     <string name="header_interval">Change wallpaper every</string>
     <string name="header_doubletap">Change wallpaper when double-tapping on home screen</string>
     <string name="title_lockscreen">Lock screen</string>
-    <string name="text_mirror_homescreen">Use home screen</string>
+    <string name="text_use_homescreen">Use home screen album</string>
     <string name="content_desc_homescreen_preview">Home screen wallpaper preview</string>
     <string name="content_desc_lockscreen_preview">Lock screen wallpaper preview</string>
+    <string name="header_rootfolder">Root Folder</string>
+    <string name="summary_rootfolder">Base folder to retrieve images from</string>
+    <string name="header_position">Image Position</string>
+    <string name="summary_position">How to handle images of different sizes</string>
+    <string name="header_randomorder">Random wallpaper order</string>
+    <string name="summary_order">Order in which wallpapers are displayed</string>
+    <string name="header_order">Wallpaper Order</string>
+    <string name="header_general">General</string>
+    <string name="header_lock_blur">Blur Lockscreen</string>
+    <string name="text_set">Set</string>
+    <string name="text_fit">Fit</string>
+    <string name="text_fill">Fill</string>
+    <string name="text_stretch">Stretch</string>
+    <string name="text_tile">Tile</string>
+
+    <!-- Pref Keys -->
+    <string name="uninitialized">NULL</string>
+
+    <string name="key_root_folder">KEY_ROOT_FOLDER</string>
+    <string name="key_position">KEY_POSITION</string>
+    <string name="key_random_order_enabled">KEY_RANDOM_ORDER_ENABLED</string>
+    <string name="key_album_view_type">KEY_ALBUM_VIEW_TYPE</string>
+    <string name="key_wallpaper_lock_blur">KEY_WALLPAPER_LOCK_BLUR</string>
+    <string name="key_wallpaper_lock_album">KEY_WALLPAPER_LOCK_ALBUM</string>
+    <string name="key_wallpaper_lock_use_home">KEY_WALLPAPER_LOCK_USE_HOME</string>
+    <string name="key_wallpaper_home_double_tap_enabled">KEY_WALLPAPER_DOUBLE_TAP_ENABLED</string>
+    <string name="key_wallpaper_interval_enabled">KEY_WALLPAPER_INTERVAL_ENABLED</string>
+    <string name="key_wallpaper_interval_value">KEY_WALLPAPER_INTERVAL_VALUE</string>
+    <string name="key_wallpaper_interval_type">KEY_WALLPAPER_INTERVAL_TYPE</string>
+    <string name="key_wallpaper_home_album">KEY_WALLPAPER_HOME_ALBUM</string>
 </resources>

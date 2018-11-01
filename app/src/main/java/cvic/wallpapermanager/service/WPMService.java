@@ -1,4 +1,4 @@
-package cvic.wallpapermanager;
+package cvic.wallpapermanager.service;
 
 import android.service.wallpaper.WallpaperService;
 

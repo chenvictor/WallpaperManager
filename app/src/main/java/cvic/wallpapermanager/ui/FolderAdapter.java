@@ -3,6 +3,7 @@ package cvic.wallpapermanager.ui;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -64,14 +65,16 @@ public class FolderAdapter extends RecyclerView.Adapter implements ImageCache.Ca
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.card_folder, parent, false);
+        TextView desc = view.findViewById(R.id.preview_desc);
+        desc.setTextColor(Color.WHITE);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
         View view = viewHolder.itemView;
-        TextView folderName = view.findViewById(R.id.folder_name);
-        ImageView folderPreview = view.findViewById(R.id.folder_preview);
+        ImageView folderPreview = view.findViewById(R.id.preview_image);
+        TextView folderName = view.findViewById(R.id.preview_desc);
         File folder = folders[i];
         File[] images = folder.listFiles(FilterUtils.get(FilterUtils.IMAGE));
         if (images.length > 0) {
@@ -82,9 +85,9 @@ public class FolderAdapter extends RecyclerView.Adapter implements ImageCache.Ca
             folderPreview.setImageBitmap(mCache.requestImage(images[0], i, options));
         }
         if (folder.equals(root)) {
-            folderName.setText(mActivity.getString(R.string.folder_title, "default", images.length));
+            folderName.setText(mActivity.getString(R.string.folder_title, root.getName(), images.length));
         } else {
-            folderName.setText(mActivity.getString(R.string.folder_title, folder.getName(), images.length));
+            folderName.setText(mActivity.getString(R.string.folder_title, root.getName() + "/" + folder.getName(), images.length));
         }
     }
 

@@ -32,7 +32,7 @@ public class AlbumsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_albums, container, false);
         mRecycler = view.findViewById(R.id.recycler);
         mRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        mAdapter = new FolderAdapter(getActivity(), PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.pref_key_root_folder), null));
+        mAdapter = new FolderAdapter(getActivity(), PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.key_root_folder), null));
         mRecycler.setAdapter(mAdapter);
         mRecycler.setHasFixedSize(true);
         return view;

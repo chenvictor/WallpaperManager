@@ -1,6 +1,9 @@
 package cvic.wallpapermanager;
 
+import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -28,7 +31,7 @@ public class WallpaperManager extends AppCompatActivity implements SettingsFragm
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        initPrefs();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.app_name);
@@ -38,6 +41,24 @@ public class WallpaperManager extends AppCompatActivity implements SettingsFragm
 
         mTabs = findViewById(R.id.appbar_tabs);
         mViewPager = findViewById(R.id.main_pager);
+        initTabs();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    private void initPrefs() {
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        //set default root folder
+        final String UNINITIALIZED = getString(R.string.uninitialized);
+        final String ROOT_KEY = getString(R.string.key_root_folder);
+        if (prefs.getString(ROOT_KEY, UNINITIALIZED).equals(UNINITIALIZED)) {
+            //initialize as default picture directory
+            //using commit because we need to use this value immediately in the fragments
+            prefs.edit().putString(ROOT_KEY, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()).commit();
+        }
+    }
+
+    private void initTabs() {
         mTabs.setupWithViewPager(mViewPager);
         mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override

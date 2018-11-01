@@ -2,12 +2,19 @@ package cvic.wallpapermanager.ui;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v7.preference.ListPreference;
-import android.support.v7.preference.Preference;
-import android.support.v7.preference.PreferenceFragmentCompat;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import cvic.wallpapermanager.DialogFolderPickDialog;
 import cvic.wallpapermanager.R;
@@ -15,84 +22,135 @@ import cvic.wallpapermanager.R;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceClickListener, DialogFolderPickDialog.ResultListener, Preference.OnPreferenceChangeListener {
+public class SettingsFragment extends Fragment implements DialogFolderPickDialog.ResultListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener, CompoundButton.OnCheckedChangeListener {
+
+    private static final String TAG = "cvic.wpm.wpfrag";
+
+    private SharedPreferences mPrefs;
+    private boolean editEnabled;
+
+    private TextView mRootValue;
+    private Button mSetRootBtn;
+    private RadioGroup mPositionGroup;
+    private CheckBox mRandomOrderCheckBox;
 
     private RootChangeListener mListener;
 
-    private SharedPreferences mPrefs;
-    private Preference mRootFolder;
-    private ListPreference mFitType;
-
     public SettingsFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View root = inflater.inflate(R.layout.fragment_settings, container, false);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        findViews(root);
+        setListeners();
+        setPrefs();
+        return root;
+    }
+
+    private void findViews (View root) {
+        mRootValue = root.findViewById(R.id.value_root);
+        mSetRootBtn = root.findViewById(R.id.set_root_btn);
+        mPositionGroup = root.findViewById(R.id.position_radio_group);
+        mRandomOrderCheckBox = root.findViewById(R.id.check_randomorder_enabled);
+    }
+
+    private void setListeners () {
+        mSetRootBtn.setOnClickListener(this);
+        mPositionGroup.setOnCheckedChangeListener(this);
+        mRandomOrderCheckBox.setOnCheckedChangeListener(this);
+    }
+
+    private void setPrefs () {
+        editEnabled = false;    // lock editing until initialization is done
+
+        mRootValue.setText(mPrefs.getString(getString(R.string.key_root_folder), getString(R.string.uninitialized)));
+        ((RadioButton) mPositionGroup.getChildAt(mPrefs.getInt(getString(R.string.key_position), 0))).setChecked(true);
+        mRandomOrderCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_random_order_enabled), false));
+
+        editEnabled = true;     // unlock editing
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (mSetRootBtn.equals(view)) {
+            selectRootFolder();
+        }
+    }
+
+    @Override
+    public void onCheckedChanged(RadioGroup radioGroup, int id) {
+        if (mPositionGroup.equals(radioGroup)) {
+            positionTypeChecked(radioGroup.indexOfChild(radioGroup.findViewById(id)));
+        }
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+        if (mRandomOrderCheckBox.equals(compoundButton)) {
+            randomOrderChecked(b);
+        }
+    }
+
+    /**
+     * Handle setting of root folder value,
+     *  notifying the listener, as well as
+     *  updating the pref if necessary
+     * @param newValue      new value to switch to
+     */
+    private void rootChanged (String newValue) {
+        if (editEnabled) {
+            mPrefs.edit().putString(getString(R.string.key_root_folder), newValue).apply();
+            //notify listener
+        }
+        if (mListener != null) {
+            mListener.rootChanged(newValue);
+        }
+        mRootValue.setText(newValue);
+    }
+
+    /**
+     * Handling setting of position type,
+     *  updating the pref if necessary
+     * @param idx           new index of checked button
+     */
+    private void positionTypeChecked (int idx) {
+        if (editEnabled) {
+            mPrefs.edit().putInt(getString(R.string.key_position), idx).apply();
+        }
+    }
+
+    /**
+     * Handle checking of random order,
+     *  updating the pref if necessary
+     * @param b     new checked state
+     */
+    private void randomOrderChecked (boolean b) {
+        if (editEnabled) {
+            mPrefs.edit().putBoolean(getString(R.string.key_random_order_enabled), b).apply();
+        }
     }
 
     public void setListener(RootChangeListener listener) {
         mListener = listener;
     }
 
-    @Override
-    public void onCreatePreferences(Bundle bundle, String rootKey) {
-        setPreferencesFromResource(R.xml.preferences, rootKey);
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mRootFolder = findPreference(getString(R.string.pref_key_root_folder));
-        mFitType = (ListPreference) findPreference("KEY_IMAGE_FIT_TYPE");
-        init();
-    }
-
-    private void init() {
-        if (mPrefs.getString(getString(R.string.pref_key_root_folder), getString(R.string.pref_root_folder_null)).equals(getString(R.string.pref_root_folder_null))) {
-            //initialize the value
-            mPrefs.edit().putString(getString(R.string.pref_key_root_folder), Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()).apply();
-        }
-        mRootFolder.setSummary(mPrefs.getString(
-                getString(R.string.pref_key_root_folder),
-                getString(R.string.pref_root_folder_null)));
-        mRootFolder.setOnPreferenceChangeListener(this);
-        mRootFolder.setOnPreferenceClickListener(this);
-        mFitType.setSummary(mFitType.getEntry());
-        mFitType.setOnPreferenceChangeListener(this);
-    }
-
-    @Override
-    public boolean onPreferenceClick(Preference preference) {
-        if (preference.equals(mRootFolder)) {
-            selectRootFolder();
-            return true;
-        }
-        return false;
-    }
 
     private void selectRootFolder() {
         if (getActivity() != null) {
             DialogFolderPickDialog dialog = new DialogFolderPickDialog(getActivity(), this);
-            dialog.setCurrentPath(mPrefs.getString(getString(R.string.pref_key_root_folder), null));
+            dialog.setCurrentPath(mPrefs.getString(getString(R.string.key_root_folder), null));
             dialog.show();
         }
     }
 
     @Override
     public void result(String path) {
-        if (!path.contentEquals(mRootFolder.getSummary())) {
-            mPrefs.edit().putString(getString(R.string.pref_key_root_folder), path).apply();
-        }
-    }
-
-    @Override
-    public boolean onPreferenceChange(Preference preference, Object o) {
-        String value = (String) o;
-        if (preference.equals(mRootFolder)) {
-            mRootFolder.setSummary(value);
-            if (mListener != null) {
-                mListener.rootChanged(value);
-            }
-            return true;
-        }
-        if (preference.equals(mFitType)) {
-            mFitType.setSummary(mFitType.getEntries()[Integer.parseInt(value) - 1]);    //convert to 0 based
-            return true;
-        }
-        return false;
+        rootChanged(path);
     }
 
     public interface RootChangeListener {

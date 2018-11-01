@@ -43,9 +43,11 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
 
     @Override
     public void onTaskComplete(int requestId, Bitmap bitmap) {
-        cache.put(requestId, bitmap);
-        if (mListener != null) {
-            mListener.onBitmapAvailable(requestId, bitmap);
+        if (bitmap != null) {
+            cache.put(requestId, bitmap);
+            if (mListener != null) {
+                mListener.onBitmapAvailable(requestId, bitmap);
+            }
         }
     }
 
