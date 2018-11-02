@@ -26,21 +26,20 @@
     <string name="title_home_screen">Home screen</string>
     <string name="header_album">Album</string>
     <string name="header_interval">Change wallpaper every</string>
-    <string name="header_doubletap">Change wallpaper when double-tapping on home screen</string>
-    <string name="title_lockscreen">Lock screen</string>
-    <string name="text_use_homescreen">Use home screen album</string>
-    <string name="content_desc_homescreen_preview">Home screen wallpaper preview</string>
-    <string name="content_desc_lockscreen_preview">Lock screen wallpaper preview</string>
-    <string name="header_rootfolder">Root Folder</string>
-    <string name="summary_rootfolder">Base folder to retrieve images from</string>
+    <string name="header_double_tap">Change wallpaper when double-tapping on home screen</string>
+    <string name="title_lock">Lock screen</string>
+    <string name="text_use_home">Use home screen album</string>
+    <string name="content_desc_preview">Image preview</string>
+    <string name="header_root">Root Folder</string>
+    <string name="summary_root">Base folder to retrieve images from</string>
     <string name="header_position">Image Position</string>
     <string name="summary_position">How to handle images of different sizes</string>
-    <string name="header_randomorder">Random wallpaper order</string>
+    <string name="header_random_order">Random wallpaper order</string>
     <string name="summary_order">Order in which wallpapers are displayed</string>
     <string name="header_order">Wallpaper Order</string>
     <string name="header_general">General</string>
-    <string name="header_lock_blur">Blur Lockscreen</string>
-    <string name="text_set">Set</string>
+    <string name="header_lock_blur">Blur Lock screen</string>
+    <string name="text_change">Change</string>
     <string name="text_fit">Fit</string>
     <string name="text_fill">Fill</string>
     <string name="text_stretch">Stretch</string>
@@ -61,4 +60,5 @@
     <string name="key_wallpaper_interval_value">KEY_WALLPAPER_INTERVAL_VALUE</string>
     <string name="key_wallpaper_interval_type">KEY_WALLPAPER_INTERVAL_TYPE</string>
     <string name="key_wallpaper_home_album">KEY_WALLPAPER_HOME_ALBUM</string>
+    <string name="albumable_label">%s (%d images)</string>
 </resources>

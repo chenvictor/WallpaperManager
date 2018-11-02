@@ -1,4 +1,4 @@
-package cvic.wallpapermanager;
+package cvic.wallpapermanager.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,8 +19,7 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     private CacheListener mListener;
 
     public ImageCache(CacheListener listener) {
-        mPlaceholder = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888);
-
+        mPlaceholder = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
         mListener = listener;
         cache = new LruCache<Integer, Bitmap>((int) Runtime.getRuntime().maxMemory() / (1024 * 8)) {
             @Override
@@ -30,7 +29,7 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
         };
     }
 
-    public Bitmap requestImage(File file, int requestId, BitmapFactory.Options options) {
+    public Bitmap requestImage (File file, int requestId, BitmapFactory.Options options) {
         Bitmap cached = cache.get(requestId);
         if (cached != null) {
             return cached;
@@ -39,6 +38,10 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
             task.execute();
             return mPlaceholder;
         }
+    }
+
+    public void flush () {
+        cache.evictAll();
     }
 
     @Override

@@ -1,11 +1,11 @@
-package cvic.wallpapermanager;
+package cvic.wallpapermanager.utils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.design.widget.TextInputEditText;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
@@ -19,7 +19,9 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.FilenameFilter;
 
-public class DialogFolderPickDialog {
+import cvic.wallpapermanager.R;
+
+public class FolderPickDialog {
 
     private ResultListener mListener;
 
@@ -32,11 +34,11 @@ public class DialogFolderPickDialog {
     private File currentDir;
     private String[] currentFolders = {};
 
-    public DialogFolderPickDialog(@NonNull Activity activity, final ResultListener listener) {
+    public FolderPickDialog(@NonNull Activity activity, final ResultListener listener) {
         mListener = listener;
         mActivity = activity;
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        View view = LayoutInflater.from(activity).inflate(R.layout.dialog_folderpick_dialog, null);
+        @SuppressLint("InflateParams") View view = LayoutInflater.from(activity).inflate(R.layout.dialog_folderpick_dialog, null, false);
         mPathTextView = view.findViewById(R.id.textview_path);
         mRecycler = view.findViewById(R.id.recycler);
         mRecycler.setLayoutManager(new LinearLayoutManager(activity));
@@ -131,7 +133,7 @@ public class DialogFolderPickDialog {
         File newFolder = new File(currentDir, name);
         if (newFolder.mkdirs()) {
             //refresh recyclerview
-            changeDirectory(currentDir);
+            changeDirectory(newFolder);
         }
     }
 

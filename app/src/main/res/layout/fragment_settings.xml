@@ -10,7 +10,7 @@
         android:layout_height="wrap_content">
 
         <android.support.v7.widget.CardView
-            android:id="@+id/card_rootfolder"
+            android:id="@+id/card_root"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -31,7 +31,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:ellipsize="start"
-                    android:text="@string/header_rootfolder"
+                    android:text="@string/header_root"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -59,7 +59,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="8dp"
                     android:singleLine="true"
-                    android:text="@string/summary_rootfolder"
+                    android:text="@string/summary_root"
                     android:textAlignment="viewStart"
                     android:textStyle="italic"
                     app:layout_constraintStart_toStartOf="parent"
@@ -71,7 +71,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="0dp"
-                    android:text="@string/text_set"
+                    android:text="@string/text_change"
                     android:textAllCaps="true"
                     android:textSize="12sp"
                     app:layout_constraintBottom_toBottomOf="@+id/value_root"
@@ -90,7 +90,7 @@
             android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/card_rootfolder">
+            app:layout_constraintTop_toBottomOf="@+id/card_root">
 
             <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
@@ -206,7 +206,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="@string/header_randomorder"
+                    android:text="@string/header_random_order"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/summary_order" />

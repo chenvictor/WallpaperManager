@@ -17,7 +17,7 @@ import cvic.wallpapermanager.ui.AlbumsFragment;
 import cvic.wallpapermanager.ui.SettingsFragment;
 import cvic.wallpapermanager.ui.WallpaperFragment;
 
-public class WallpaperManager extends AppCompatActivity implements SettingsFragment.RootChangeListener {
+public class WallpaperManager extends AppCompatActivity {
 
     private static final String[] PAGE_TITLES = {"Wallpaper", "Albums", "Settings"};
 
@@ -36,8 +36,6 @@ public class WallpaperManager extends AppCompatActivity implements SettingsFragm
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.app_name);
         setSupportActionBar(toolbar);
-
-        mSettings.setListener(this);
 
         mTabs = findViewById(R.id.appbar_tabs);
         mViewPager = findViewById(R.id.main_pager);
@@ -85,10 +83,5 @@ public class WallpaperManager extends AppCompatActivity implements SettingsFragm
                 return PAGE_TITLES[position];
             }
         });
-    }
-
-    @Override
-    public void rootChanged(String path) {
-        mAlbums.rootChanged(path);
     }
 }

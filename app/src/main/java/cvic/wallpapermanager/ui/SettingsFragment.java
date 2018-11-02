@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,13 +15,13 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import cvic.wallpapermanager.DialogFolderPickDialog;
 import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.utils.FolderPickDialog;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class SettingsFragment extends Fragment implements DialogFolderPickDialog.ResultListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener, CompoundButton.OnCheckedChangeListener {
+public class SettingsFragment extends Fragment implements FolderPickDialog.ResultListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener, CompoundButton.OnCheckedChangeListener {
 
     private static final String TAG = "cvic.wpm.wpfrag";
 
@@ -33,8 +32,6 @@ public class SettingsFragment extends Fragment implements DialogFolderPickDialog
     private Button mSetRootBtn;
     private RadioGroup mPositionGroup;
     private CheckBox mRandomOrderCheckBox;
-
-    private RootChangeListener mListener;
 
     public SettingsFragment() {
         // Required empty public constructor
@@ -98,7 +95,6 @@ public class SettingsFragment extends Fragment implements DialogFolderPickDialog
 
     /**
      * Handle setting of root folder value,
-     *  notifying the listener, as well as
      *  updating the pref if necessary
      * @param newValue      new value to switch to
      */
@@ -106,9 +102,6 @@ public class SettingsFragment extends Fragment implements DialogFolderPickDialog
         if (editEnabled) {
             mPrefs.edit().putString(getString(R.string.key_root_folder), newValue).apply();
             //notify listener
-        }
-        if (mListener != null) {
-            mListener.rootChanged(newValue);
         }
         mRootValue.setText(newValue);
     }
@@ -135,14 +128,9 @@ public class SettingsFragment extends Fragment implements DialogFolderPickDialog
         }
     }
 
-    public void setListener(RootChangeListener listener) {
-        mListener = listener;
-    }
-
-
     private void selectRootFolder() {
         if (getActivity() != null) {
-            DialogFolderPickDialog dialog = new DialogFolderPickDialog(getActivity(), this);
+            FolderPickDialog dialog = new FolderPickDialog(getActivity(), this);
             dialog.setCurrentPath(mPrefs.getString(getString(R.string.key_root_folder), null));
             dialog.show();
         }
@@ -153,9 +141,4 @@ public class SettingsFragment extends Fragment implements DialogFolderPickDialog
         rootChanged(path);
     }
 
-    public interface RootChangeListener {
-
-        void rootChanged(String path);
-
-    }
 }
