@@ -15,7 +15,7 @@ public class FilterUtils {
                     @Override
                     public boolean accept(File file, String s) {
                         File dir = new File(file, s);
-                        return dir.isDirectory() && containsImages(dir);
+                        return dir.isDirectory();
                     }
                 };
             case IMAGE:

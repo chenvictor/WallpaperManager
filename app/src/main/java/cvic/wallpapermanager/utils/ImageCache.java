@@ -29,13 +29,25 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
         };
     }
 
+    /**
+     * Request an image from the cache
+     * @param file          File corresponding the the image
+     * @param requestId     a requestId, used to identify the request in the callback
+     * @param options       bitmap decoding options
+     * @return      the cached image, if available.
+     *              otherwise, a BitmapWorkerTask will be created to fetch the image,
+     *              and a placeholder image is returned.
+     *              If the file is null, the placeholder image will be returned.
+     */
     public Bitmap requestImage (File file, int requestId, BitmapFactory.Options options) {
         Bitmap cached = cache.get(requestId);
         if (cached != null) {
             return cached;
         } else {
-            BitmapWorkerTask task = new BitmapWorkerTask(file, requestId, this, options);
-            task.execute();
+            if (file != null) {
+                BitmapWorkerTask task = new BitmapWorkerTask(file, requestId, this, options);
+                task.execute();
+            }
             return mPlaceholder;
         }
     }

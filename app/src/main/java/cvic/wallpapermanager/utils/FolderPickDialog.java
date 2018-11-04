@@ -68,7 +68,7 @@ public class FolderPickDialog {
         }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-
+                
             }
         });
         mDialog = builder.create();

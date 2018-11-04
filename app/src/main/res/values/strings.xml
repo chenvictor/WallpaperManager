@@ -17,6 +17,9 @@
     </string-array>
 
     <string name="folder_title">%s (%d images)</string>
+    <string name="message_rename_failed">Name contains invalid characters.</string>
+    <string name="message_no_folders">No images found. Press \'New\' to add a folder</string>
+    <string name="message_folder_exists">Folder already exists!</string>
 
     <!-- Preferences -->
     <string name="folder_preview_image">Folder Preview Image</string>
@@ -61,4 +64,7 @@
     <string name="key_wallpaper_interval_type">KEY_WALLPAPER_INTERVAL_TYPE</string>
     <string name="key_wallpaper_home_album">KEY_WALLPAPER_HOME_ALBUM</string>
     <string name="albumable_label">%s (%d images)</string>
+    <string name="text_new">New</string>
+    <string name="rename">Rename</string>
+    <string name="delete">Delete</string>
 </resources>

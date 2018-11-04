@@ -23,12 +23,13 @@ public class FetchFolderTask extends AsyncTask<String, Void, List<Albumable>> {
     protected List<Albumable> doInBackground(String... strings) {
         if (strings.length != 1) {
             cancel(true);
+            return null;
         }
         File root = new File(strings[0]);
         List<Albumable> list = new ArrayList<>();
-        if (FilterUtils.containsImages(root)) {
-            list.add(new Folder(root, true));
-        }
+//        if (FilterUtils.containsImages(root)) {
+//            list.add(new Folder(root, true));
+//        }
         for (File dir : root.listFiles(FilterUtils.get(FilterUtils.FOLDER))) {
             list.add(new Folder(dir));
         }

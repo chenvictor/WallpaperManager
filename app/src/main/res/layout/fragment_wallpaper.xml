@@ -141,7 +141,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/header_homescreen_album">
 
                     <include
-                        layout="@layout/layout_preview"
+                        layout="@layout/layout_preview_album"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
                 </android.support.v7.widget.CardView>
@@ -251,7 +251,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/header_lockscreen_album">
 
                     <include
-                        layout="@layout/layout_preview"
+                        layout="@layout/layout_preview_album"
                         android:layout_width="match_parent"
                         android:layout_height="120dp" />
                 </android.support.v7.widget.CardView>
