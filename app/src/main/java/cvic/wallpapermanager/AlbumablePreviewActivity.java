@@ -1,7 +1,9 @@
 package cvic.wallpapermanager;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -12,6 +14,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import cvic.wallpapermanager.model.Albumable;
+import cvic.wallpapermanager.model.Folder;
 import cvic.wallpapermanager.ui.ImageAdapter;
 import cvic.wallpapermanager.utils.DisplayUtils;
 
@@ -20,7 +23,9 @@ public class AlbumablePreviewActivity extends AppCompatActivity {
     public static final String EXTRA_ALBUM_PARCEL = "cvic.wpm.eap";
 
     private static final int GRID_SIZE = 300;
+    private static final String TAG = "cvic.wpm.apa";
 
+    private Toolbar toolbar;
     private Albumable album;
 
     private RecyclerView mRecycler;
@@ -36,7 +41,7 @@ public class AlbumablePreviewActivity extends AppCompatActivity {
             return;
         }
         album = (Albumable) parcelable;
-        initToolbar(album);
+        initToolbar();
         mRecycler = findViewById(R.id.recycler);
         int colSpan = DisplayUtils.getDisplayWidth(this) / GRID_SIZE;
         mRecycler.setLayoutManager(new GridLayoutManager(this, colSpan));
@@ -52,16 +57,16 @@ public class AlbumablePreviewActivity extends AppCompatActivity {
         addBtn.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                album.addImage();
+                album.addImage(AlbumablePreviewActivity.this);
                 return true;
             }
         });
         return true;
     }
 
-    private void initToolbar(Albumable parcelable) {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle(getString(R.string.folder_title, parcelable.getName(), parcelable.getCount()));
+    private void initToolbar() {
+        toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle(getString(R.string.folder_title, album.getName(), album.getCount()));
         setSupportActionBar(toolbar);
         ActionBar bar = getSupportActionBar();
         bar.setDisplayHomeAsUpEnabled(true);
@@ -79,5 +84,18 @@ public class AlbumablePreviewActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == Folder.PICK_IMAGE) {
+            if (resultCode == RESULT_OK) {
+                album.refresh();
+                mAdapter.notifyDataSetChanged();
+                toolbar.setTitle(getString(R.string.folder_title, album.getName(), album.getCount()));
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 }

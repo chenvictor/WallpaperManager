@@ -1,15 +1,20 @@
 package cvic.wallpapermanager.model;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
 import java.io.File;
 
+import cvic.wallpapermanager.AddImagesActivity;
 import cvic.wallpapermanager.utils.FilterUtils;
 
 public class Folder extends Albumable {
 
+    public static final String EXTRA_DEST_PATH = "folder.destPath";
+    public static final int PICK_IMAGE = 123;
     private File mFile;
     private boolean root;
     private File[] images;
@@ -43,12 +48,17 @@ public class Folder extends Albumable {
 
     public Folder(File file, boolean root) {
         mFile = file;
-        images = mFile.listFiles(FilterUtils.get(FilterUtils.IMAGE));
+        refresh();
         this.root = root;
     }
 
     public Folder (File file) {
         this (file, false);
+    }
+
+    @Override
+    public void refresh() {
+        images = mFile.listFiles(FilterUtils.get(FilterUtils.IMAGE));
     }
 
     @Override
@@ -69,6 +79,10 @@ public class Folder extends Albumable {
         return images.length;
     }
 
+    public File getFile() {
+        return mFile;
+    }
+
     @Override
     public File getPreview() {
         if (getCount() == 0) {
@@ -78,8 +92,10 @@ public class Folder extends Albumable {
     }
 
     @Override
-    public void addImage() {
-        Log.i("cvic.wpm.folder", "Adding Image");
+    public void addImage(Activity parent) {
+        Intent intent = new Intent(parent, AddImagesActivity.class);
+        intent.putExtra(EXTRA_DEST_PATH, mFile.getAbsolutePath());
+        parent.startActivityForResult(intent, PICK_IMAGE);
     }
 
     @Override

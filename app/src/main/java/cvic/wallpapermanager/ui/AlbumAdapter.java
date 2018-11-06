@@ -79,8 +79,6 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
         preview.setImageBitmap(mCache.requestImage(item.getPreview(), i, options));
     }
 
-
-
     @Override
     public int getItemCount() {
         if (mAdapterItems == null) {

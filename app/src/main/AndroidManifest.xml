@@ -25,11 +25,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".AlbumablePreviewActivity"
-            android:parentActivityName=".WallpaperManager">
-        </activity>
+            android:parentActivityName=".WallpaperManager"></activity>
 
         <service
             android:name=".service.WPMService"
@@ -39,6 +37,8 @@
                 <action android:name="android.service.wallpaper.WallpaperService" />
             </intent-filter>
         </service>
+
+        <activity android:name=".AddImagesActivity"></activity>
     </application>
 
 </manifest>

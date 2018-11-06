@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import cvic.wallpapermanager.R;
@@ -31,7 +32,7 @@ import cvic.wallpapermanager.utils.TextInputDialog;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener, FetchFolderTask.TaskListener, TextInputDialog.ResultListener, View.OnClickListener {
+public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelectedListener, FetchFolderTask.TaskListener, TextInputDialog.ResultListener, View.OnClickListener {
 
     private static final String TAG = "cvic.wpm.albums";
 
@@ -56,7 +57,6 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_albums, container, false);
         mPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mPrefs.registerOnSharedPreferenceChangeListener(this);
         findViews(root);
         setListeners();
         setPrefs();
@@ -125,18 +125,8 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
     }
 
     private void loadTags() {
-
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (mViewTypeSpinner.getSelectedItemPosition() == 0) {
-            //If viewing folders,
-            if (key.equals(getString(R.string.key_root_folder))) {
-                // and root folder was changed, reload folders
-                loadFolders();
-            }
-        }
+        mAdapter.setAdapterItems(new ArrayList<Albumable>());
+        // TODO
     }
 
     @Override
@@ -150,7 +140,7 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
             //Hide recycler, show message, set folder view, disable spinner
             mRecycler.setVisibility(View.GONE);
             mNoFoldersMessage.setVisibility(View.VISIBLE);
-            viewTypeSet(0);
+            mViewTypeSpinner.setSelection(0, true);
             mViewTypeSpinner.setEnabled(false);
         } else {
             //Show recycler, hide message, enable spinner
@@ -189,5 +179,11 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
             TextInputDialog dialog = new TextInputDialog(getContext(), AlbumsFragment.this, "New " + title);
             dialog.show();
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadFolders();
     }
 }

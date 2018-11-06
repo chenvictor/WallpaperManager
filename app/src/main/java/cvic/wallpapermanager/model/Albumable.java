@@ -1,6 +1,7 @@
 package cvic.wallpapermanager.model;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -91,7 +92,9 @@ public abstract class Albumable implements Parcelable, TextInputDialog.ResultLis
     public abstract int getCount();
     public abstract File getPreview();
 
-    public abstract void addImage();
+    public abstract void refresh();
+
+    public abstract void addImage(Activity activity);
 
     /**
      * Rename the album

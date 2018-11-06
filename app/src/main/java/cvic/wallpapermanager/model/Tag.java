@@ -1,5 +1,6 @@
 package cvic.wallpapermanager.model;
 
+import android.app.Activity;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -49,7 +50,12 @@ public class Tag extends Albumable {
     }
 
     @Override
-    public void addImage() {
+    public void refresh() {
+
+    }
+
+    @Override
+    public void addImage(Activity activity) {
 
     }
 
