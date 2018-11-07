@@ -27,7 +27,7 @@
         </activity>
         <activity
             android:name=".AlbumablePreviewActivity"
-            android:parentActivityName=".WallpaperManager"></activity>
+            android:parentActivityName=".WallpaperManager" />
 
         <service
             android:name=".service.WPMService"
@@ -38,7 +38,12 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".AddImagesActivity"></activity>
+        <activity android:name=".AddImagesActivity" />
+        <activity
+            android:name=".FolderIVA"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_image_view"
+            android:theme="@style/FullscreenTheme" />
     </application>
 
 </manifest>

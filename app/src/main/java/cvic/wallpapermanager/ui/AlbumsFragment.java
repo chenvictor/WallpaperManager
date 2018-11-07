@@ -19,12 +19,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.model.Albumable;
 import cvic.wallpapermanager.model.Folder;
+import cvic.wallpapermanager.model.FolderManager;
 import cvic.wallpapermanager.tasks.FetchFolderTask;
 import cvic.wallpapermanager.utils.DisplayUtils;
 import cvic.wallpapermanager.utils.TextInputDialog;
@@ -61,6 +61,8 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
         setListeners();
         setPrefs();
         initRecycler();
+        loadFolders();
+        loadTags();
         return root;
     }
 
@@ -85,7 +87,7 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
     private void initRecycler() {
         int colSpan = DisplayUtils.getDisplayWidth(getActivity()) / GRID_SIZE;
         mRecycler.setLayoutManager(new GridLayoutManager(getContext(), colSpan));
-        mAdapter = new AlbumAdapter(this);
+        mAdapter = new AlbumAdapter(this, GRID_SIZE);
         mRecycler.setAdapter(mAdapter);
         mRecycler.setHasFixedSize(true);
     }
@@ -106,33 +108,25 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
         if (editEnabled) {
             mPrefs.edit().putInt(getString(R.string.key_album_view_type), idx).apply();
         }
-        switch (idx) {
-            case 0:
-                loadFolders();
-                break;
-            case 1:
-                loadTags();
-        }
+        mAdapter.setViewType(idx);
+        notifyEmpty(mAdapter.getItemCount() == 0);
     }
 
     private void loadFolders() {
         final String UN_INIT = getString(R.string.uninitialized);
-        String rootPath = mPrefs.getString(getString(R.string.key_root_folder), UN_INIT);
-        rootPath = getContext().getExternalFilesDir(null).getAbsolutePath();
+        String rootPath = getContext().getExternalFilesDir(null).getAbsolutePath();
         if (!rootPath.equals(UN_INIT)) {
             new FetchFolderTask(this).execute(rootPath);
         }
     }
 
     private void loadTags() {
-        mAdapter.setAdapterItems(new ArrayList<Albumable>());
         // TODO
     }
 
     @Override
     public void onFoldersFetched(List<Albumable> folders) {
-        mAdapter.setAdapterItems(folders);
-        notifyEmpty(folders.isEmpty());
+        FolderManager.getInstance().setFolders(folders);
     }
 
     public void notifyEmpty(boolean empty) {
@@ -157,18 +151,19 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
             return;
         }
         //Create New
-        if (mViewTypeSpinner.getSelectedItemPosition() == 0) {
-            //Folder
-            File file = new File(getContext().getExternalFilesDir(null), input);
-            Log.i(TAG, "Creating Folder: " + file.getAbsolutePath());
-            if (!file.mkdir()) {
-                Toast.makeText(getContext(), R.string.message_folder_exists, Toast.LENGTH_SHORT).show();
-            } else {
-                mAdapter.addAlbum(new Folder(file));
-            }
-        } else if (mViewTypeSpinner.getSelectedItemPosition() == 1) {
-            //Tag
-            //TODO
+        switch(mViewTypeSpinner.getSelectedItemPosition()) {
+            case Albumable.TYPE_FOLDER:
+                File file = new File(getContext().getExternalFilesDir(null), input);
+                Log.i(TAG, "Creating Folder: " + file.getAbsolutePath());
+                if (!file.mkdir()) {
+                    Toast.makeText(getContext(), R.string.message_folder_exists, Toast.LENGTH_SHORT).show();
+                } else {
+                    mAdapter.addAlbum(new Folder(file));
+                }
+                break;
+            case Albumable.TYPE_TAG:
+                //TODO
+                break;
         }
     }
 
@@ -184,6 +179,7 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
     @Override
     public void onResume() {
         super.onResume();
-        loadFolders();
+        mAdapter.notifyDataSetChanged();
+        mAdapter.flushCache();
     }
 }

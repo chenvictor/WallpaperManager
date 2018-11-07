@@ -1,7 +1,6 @@
 package cvic.wallpapermanager.utils;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -33,21 +32,24 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
      * Request an image from the cache
      * @param file          File corresponding the the image
      * @param requestId     a requestId, used to identify the request in the callback
-     * @param options       bitmap decoding options
+     * @param width         requested width
+     * @param height        requested height
      * @return      the cached image, if available.
      *              otherwise, a BitmapWorkerTask will be created to fetch the image,
      *              and a placeholder image is returned.
      *              If the file is null, the placeholder image will be returned.
      */
-    public Bitmap requestImage (File file, int requestId, BitmapFactory.Options options) {
+    public Bitmap requestImage (File file, int requestId, int width, int height) {
+        if (file == null) {
+            cache.remove(requestId);
+            return mPlaceholder;
+        }
         Bitmap cached = cache.get(requestId);
         if (cached != null) {
             return cached;
         } else {
-            if (file != null) {
-                BitmapWorkerTask task = new BitmapWorkerTask(file, requestId, this, options);
-                task.execute();
-            }
+            BitmapWorkerTask task = new BitmapWorkerTask(file, requestId, this, width, height);
+            task.execute();
             return mPlaceholder;
         }
     }

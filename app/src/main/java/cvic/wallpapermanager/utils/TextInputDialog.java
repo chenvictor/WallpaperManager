@@ -31,7 +31,7 @@ public class TextInputDialog {
             public void onClick(DialogInterface dialogInterface, int i) {
                 //Validate the string
                 String text = input.getText().toString();
-                if (text.matches("[a-zA-Z]+")) {
+                if (text.matches("[a-zA-Z0-9]+")) {
                     mListener.onResult(text);
                 } else {
                     mListener.onResult(null);

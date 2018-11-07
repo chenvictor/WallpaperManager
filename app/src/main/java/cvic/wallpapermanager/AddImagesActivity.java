@@ -1,13 +1,9 @@
 package cvic.wallpapermanager;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -16,53 +12,30 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import cvic.wallpapermanager.model.Albumable;
 import cvic.wallpapermanager.model.Folder;
 import cvic.wallpapermanager.tasks.AddImagesTask;
-import cvic.wallpapermanager.ui.DirectoryAdapter;
-import cvic.wallpapermanager.utils.DisplayUtils;
+import cvic.wallpapermanager.ui.MultiSelectImageAdapter;
+import cvic.wallpapermanager.utils.FilterUtils;
 
-public class AddImagesActivity extends AppCompatActivity implements DirectoryAdapter.AdapterListener, AddImagesTask.TaskListener {
-
-    private static final int GRID_SIZE = 300;
+public class AddImagesActivity extends MultiSelectImageActivity implements AddImagesTask.TaskListener {
 
     private String destinationPath;
-    private Albumable album;
-
-    private Toolbar toolbar;
-    private MenuItem addBtn;
-
-    private RecyclerView mRecycler;
-    private DirectoryAdapter mAdapter;
-
-    private AddImagesTask.TaskListener listener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_images);
         destinationPath = getIntent().getStringExtra(Folder.EXTRA_DEST_PATH);
-        File file = getRootPath();
-        if (file == null) {
-            Toast.makeText(this, "Root path invalid!", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-        initToolbar();
-        mRecycler = findViewById(R.id.recycler);
-        int colSpan = DisplayUtils.getDisplayWidth(this) / GRID_SIZE;
-        mRecycler.setLayoutManager(new GridLayoutManager(this, colSpan));
-        mAdapter = new DirectoryAdapter(this, this, file);
-        mRecycler.setAdapter(mAdapter);
-        mRecycler.setHasFixedSize(true);
+        super.onCreate(savedInstanceState);
     }
 
-    private void initToolbar() {
-        toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle("Add Images");
-        setSupportActionBar(toolbar);
-        ActionBar bar = getSupportActionBar();
-        bar.setDisplayHomeAsUpEnabled(true);
+    @Override
+    protected MultiSelectImageAdapter getAdapter() {
+        File root = getRootPath();
+        if (root == null) {
+            Toast.makeText(this, "Root path invalid!", Toast.LENGTH_SHORT).show();
+            finish();
+            return null;
+        }
+        return new DirectoryAdapter(this, this, root);
     }
 
     private File getRootPath() {
@@ -76,64 +49,88 @@ public class AddImagesActivity extends AppCompatActivity implements DirectoryAda
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (!mAdapter.navigateBack()) {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public void singleSelected(File file) {
+    public void onSingleImageClick(File file) {
         Set<File> set = new HashSet<>();
         set.add(file);
-        multiSelected(set);
+        addImages(set);
     }
 
-    public void multiSelected(Set<File> files) {
+    private void addImages(Set<File> files) {
         AddImagesTask task = new AddImagesTask(this, new File(destinationPath));
         File[] array = new File[files.size()];
         array = files.toArray(array);
         task.execute(array);
+        setLoading("Adding Images");
     }
 
     @Override
-    public void multiSelectionChanged(int count) {
-        if (count == 0) {
-            toolbar.setTitle("Add Images");
-            addBtn.setVisible(false);
-        } else {
-            toolbar.setTitle(String.valueOf(count) + " selected");
-            addBtn.setVisible(true);
-        }
+    protected String getDefaultTitle() {
+        return "Add Images";
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        addBtn = menu.add(getString(R.string.confirm));
-        addBtn.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        addBtn.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+    public void defaultMenuOptions(Menu menu) {
+
+    }
+
+    @Override
+    protected void multiselectMenuOptions(Menu menu) {
+        menu.add("Add Images").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                multiSelected(mAdapter.getSelection());
+                addImages(mAdapter.getSelections());
                 return true;
             }
         });
-        addBtn.setVisible(false);
-        return true;
     }
 
     @Override
     public void onTaskComplete() {
+        doneLoading();
         setResult(RESULT_OK);
         finish();
+    }
+
+    static class DirectoryAdapter extends MultiSelectImageAdapter {
+        private final File root;
+        private File current;
+        private File[] files = {};
+
+        DirectoryAdapter(MultiSelectListener listener, Context ctx, File root) {
+            super(listener, ctx, true);
+            this.root = root;
+            setPath(root);
+        }
+
+        private void setPath(File file) {
+            current = file;
+            files = current.listFiles(FilterUtils.get(FilterUtils.EITHER));
+            flushCache();
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public void directoryClicked(File file) {
+            setPath(file);
+        }
+
+        @Override
+        public File getFile(int i) {
+            return files[i];
+        }
+
+        @Override
+        public boolean onBackPressed() {
+            if (current.equals(root)) {
+                return false;
+            }
+            setPath(current.getParentFile());
+            return true;
+        }
+
+        @Override
+        public int getItemCount() {
+            return files.length;
+        }
     }
 }

@@ -5,32 +5,30 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 
 import java.io.File;
 
-import cvic.wallpapermanager.AlbumablePreviewActivity;
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.utils.TextInputDialog;
 
-public abstract class Albumable implements Parcelable, TextInputDialog.ResultListener{
+public abstract class Albumable implements TextInputDialog.ResultListener{
 
-    private AlbumChangeListener mListener;
-    private int listenerIdx;
+    private int id = -1;
+
+    public static final String EXTRA_TYPE = "cvic.wpm.extra_album_type";
+    public static final String EXTRA_ID = "cvic.wpm.extra_album_id";
+    public static final int TYPE_FOLDER = 0;
+    public static final int TYPE_TAG = 1;
+
+    AlbumChangeListener mListener;
+    int listenerIdx;
 
     public void setListener(AlbumChangeListener listener, int idx) {
         mListener = listener;
         listenerIdx = idx;
-    }
-
-    public void onClick(Context ctx) {
-        Intent intent = new Intent(ctx, AlbumablePreviewActivity.class);
-        intent.putExtra(AlbumablePreviewActivity.EXTRA_ALBUM_PARCEL, this);
-        ctx.startActivity(intent);
     }
 
     public boolean onLongClick(Context ctx) {
@@ -62,11 +60,7 @@ public abstract class Albumable implements Parcelable, TextInputDialog.ResultLis
             @Override
             public void onClick(View view) {
                 dialog.dismiss();
-                //TODO: If album is not empty, prompt user to cancel, move images to other folder, or proceed
-                delete();
-                if (mListener != null) {
-                    mListener.onAlbumDelete(listenerIdx);
-                }
+                delete(ctx);
             }
         });
         return dialog;
@@ -87,6 +81,14 @@ public abstract class Albumable implements Parcelable, TextInputDialog.ResultLis
         }
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return this.id;
+    }
+
     public abstract String getName();
     public abstract File getImage(int idx);
     public abstract int getCount();
@@ -105,9 +107,8 @@ public abstract class Albumable implements Parcelable, TextInputDialog.ResultLis
 
     /**
      * Deletes the album
-     * @return          true if deletion was successful, false otherwise
      */
-    public abstract boolean delete();
+    public abstract void delete(Context ctx);
 
     public interface AlbumChangeListener {
 

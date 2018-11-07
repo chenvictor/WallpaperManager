@@ -2,6 +2,7 @@
   <dictionary name="chenv">
     <words>
       <w>albumable</w>
+      <w>multiselect</w>
     </words>
   </dictionary>
 </component>

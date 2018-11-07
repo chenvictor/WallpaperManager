@@ -1,8 +1,8 @@
 package cvic.wallpapermanager.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
@@ -13,33 +13,31 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import cvic.wallpapermanager.AlbumablePreviewActivity;
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.model.Albumable;
+import cvic.wallpapermanager.model.Folder;
+import cvic.wallpapermanager.model.FolderManager;
+import cvic.wallpapermanager.model.Tag;
+import cvic.wallpapermanager.model.TagManager;
 import cvic.wallpapermanager.utils.ImageCache;
 
 public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, Albumable.AlbumChangeListener{
 
+    private int size;
+
+    private int viewType = 0;
+
     private final AlbumsFragment mFrag;
     private final Context mCtx;
 
-    private List<Albumable> mAdapterItems;
     private ImageCache mCache;
 
-    AlbumAdapter(AlbumsFragment fragment) {
+    AlbumAdapter(AlbumsFragment fragment, int gridSize) {
         mFrag = fragment;
         mCtx = fragment.getContext();
         mCache = new ImageCache(this);
-        mAdapterItems = new ArrayList<>();
-    }
-
-    void setAdapterItems(List<Albumable> items) {
-        mAdapterItems = items;
-        //flush the image cache
-        mCache.flush();
-        notifyDataSetChanged();
+        size = gridSize;
     }
 
     @NonNull
@@ -51,40 +49,63 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mAdapterItems.get(holder.getAdapterPosition()).onClick(mCtx);
+                onClicked(holder.getAdapterPosition());
             }
         });
         view.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                return mAdapterItems.get(holder.getAdapterPosition()).onLongClick(view.getContext());
+                return getItem(holder.getAdapterPosition()).onLongClick(view.getContext());
             }
         });
 
         return holder;
     }
 
+    private void onClicked(int idx) {
+        Albumable item = getItem(idx);
+        Intent intent = new Intent(mCtx, AlbumablePreviewActivity.class);
+        intent.putExtra(Albumable.EXTRA_TYPE, viewType);
+        assert item != null;
+        intent.putExtra(Albumable.EXTRA_ID, item.getId());
+        mCtx.startActivity(intent);
+    }
+
+    private Albumable getItem(int idx) {
+        switch (viewType) {
+            case Albumable.TYPE_FOLDER:
+                return FolderManager.getInstance().getFolder(idx);
+            case Albumable.TYPE_TAG:
+                return TagManager.getInstance().getTag(idx);
+        }
+        return null;
+    }
+
+    void flushCache() {
+        mCache.flush();
+    }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-        Albumable item = mAdapterItems.get(i);
+        Albumable item = getItem(i);
+        assert item != null;
         item.setListener(this, i);
         View view = viewHolder.itemView;
-        ImageView preview = view.findViewById(R.id.grid_albumable_preview);
+        ImageView preview = view.findViewById(R.id.grid_albumable_image);
         TextView label = view.findViewById(R.id.grid_albumable_label);
         label.setText(mCtx.getString(R.string.albumable_label, item.getName(), item.getCount()));
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = 4;
-        options.outWidth = preview.getWidth();
-        options.outHeight = preview.getHeight();
-        preview.setImageBitmap(mCache.requestImage(item.getPreview(), i, options));
+        preview.setImageBitmap(mCache.requestImage(item.getPreview(), i, size, size));
     }
 
     @Override
     public int getItemCount() {
-        if (mAdapterItems == null) {
-            return 0;
+        switch (viewType) {
+            case Albumable.TYPE_FOLDER:
+                return FolderManager.getInstance().size();
+            case Albumable.TYPE_TAG:
+                return TagManager.getInstance().size();
+            default: return 0;
         }
-        return mAdapterItems.size();
     }
 
     @Override
@@ -104,21 +125,39 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
 
     @Override
     public void onAlbumDelete(int idx) {
-        if (idx < mAdapterItems.size()) {
-            mAdapterItems.remove(idx);
-            notifyItemRemoved(idx);
+        switch (viewType) {
+            case Albumable.TYPE_FOLDER:
+                FolderManager.getInstance().removeFolder(idx);
+                break;
+            case Albumable.TYPE_TAG:
+                TagManager.getInstance().removeTag(idx);
+                break;
         }
-        if (mAdapterItems.isEmpty()) {
+        notifyItemRemoved(idx);
+        if (getItemCount() == 0) {
             mFrag.notifyEmpty(true);
         }
     }
 
-    public void addAlbum(Albumable album) {
-        mAdapterItems.add(album);
-        notifyItemInserted(mAdapterItems.size() - 1);
-        if (mAdapterItems.size() == 1) {
+    void addAlbum(Albumable album) {
+        switch (viewType) {
+            case Albumable.TYPE_FOLDER:
+                FolderManager.getInstance().addFolder((Folder) album);
+                break;
+            case Albumable.TYPE_TAG:
+                TagManager.getInstance().addTag((Tag) album);
+                break;
+        }
+        notifyItemInserted(getItemCount() - 1);
+        if (getItemCount() == 1) {
             mFrag.notifyEmpty(false);
         }
+    }
+
+    void setViewType(int idx) {
+        viewType = idx;
+        mCache.flush();
+        notifyDataSetChanged();
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
