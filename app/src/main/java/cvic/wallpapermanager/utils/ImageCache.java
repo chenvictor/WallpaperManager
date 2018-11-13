@@ -1,7 +1,6 @@
 package cvic.wallpapermanager.utils;
 
 import android.graphics.Bitmap;
-import android.support.annotation.NonNull;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 
@@ -11,7 +10,7 @@ import cvic.wallpapermanager.tasks.BitmapWorkerTask;
 
 public class ImageCache implements BitmapWorkerTask.TaskListener{
 
-    private static final String TAG = "cvic.wpm.imgcache";
+    private static final String TAG = "cvic.wpm.img_cache";
 
     private Bitmap mPlaceholder;
     private LruCache<Integer, Bitmap> cache;
@@ -20,12 +19,13 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     public ImageCache(CacheListener listener) {
         mPlaceholder = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
         mListener = listener;
-        cache = new LruCache<Integer, Bitmap>((int) Runtime.getRuntime().maxMemory() / (1024 * 8)) {
-            @Override
-            protected int sizeOf(@NonNull Integer key, @NonNull Bitmap value) {
-                return value.getByteCount() / 1024;
-            }
-        };
+//        cache = new LruCache<Integer, Bitmap>((int) Runtime.getRuntime().maxMemory() / (1024 * 8)) {
+//            @Override
+//            protected int sizeOf(@NonNull Integer key, @NonNull Bitmap value) {
+//                return value.getByteCount() / 1024;
+//            }
+//        };
+        cache = new LruCache<>(16);
     }
 
     /**

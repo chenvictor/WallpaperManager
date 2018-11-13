@@ -25,6 +25,8 @@ import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.model.Albumable;
 import cvic.wallpapermanager.model.Folder;
 import cvic.wallpapermanager.model.FolderManager;
+import cvic.wallpapermanager.model.Tag;
+import cvic.wallpapermanager.model.TagManager;
 import cvic.wallpapermanager.tasks.FetchFolderTask;
 import cvic.wallpapermanager.utils.DisplayUtils;
 import cvic.wallpapermanager.utils.TextInputDialog;
@@ -127,6 +129,7 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
     @Override
     public void onFoldersFetched(List<Albumable> folders) {
         FolderManager.getInstance().setFolders(folders);
+        TagManager.getInstance().addTag(new Tag("untagged"));
     }
 
     public void notifyEmpty(boolean empty) {

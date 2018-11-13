@@ -96,7 +96,7 @@ public abstract class ImageViewActivity extends AppCompatActivity {
         }
     };
 
-    protected void addButton (String text, View.OnClickListener listener) {
+    void addButton(String text, View.OnClickListener listener) {
         Button button = (Button) LayoutInflater.from(this).inflate(R.layout.button_fullscreen_control, controlButtons, false);
         button.setText(text);
         button.setOnClickListener(listener);

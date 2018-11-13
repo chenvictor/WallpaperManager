@@ -1,9 +1,9 @@
 package cvic.wallpapermanager;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -14,9 +14,12 @@ import cvic.wallpapermanager.model.Albumable;
 import cvic.wallpapermanager.model.Folder;
 import cvic.wallpapermanager.model.FolderManager;
 import cvic.wallpapermanager.model.TagManager;
+import cvic.wallpapermanager.tasks.AddImagesTask;
 import cvic.wallpapermanager.ui.MultiSelectImageAdapter;
 
-public class AlbumablePreviewActivity extends MultiSelectImageActivity {
+public class AlbumablePreviewActivity extends MultiSelectImageActivity implements AddImagesTask.TaskListener {
+
+    private static final String TAG = "cvic.wpm.apa";
 
     private Albumable album;
 
@@ -40,7 +43,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity {
     }
 
     protected String getDefaultTitle() {
-        return getString(R.string.folder_title, album.getName(), album.getCount());
+        return getResources().getQuantityString(R.plurals.folder_title_plural, album.getCount(), album.getName(), album.getCount());
     }
 
     @Override
@@ -87,15 +90,20 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == Folder.PICK_IMAGE) {
-            if (resultCode == RESULT_OK) {
-                album.refresh();
-                mAdapter.notifyDataSetChanged();
-                toolbar.setTitle(getString(R.string.folder_title, album.getName(), album.getCount()));
+        if (requestCode == Folder.PICK_IMAGE && album instanceof Folder) {
+            if (resultCode == RESULT_OK && data != null) {
+                addImages(data);
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    private void addImages(Intent data) {
+        String[] filesToAdd = data.getStringArrayExtra(SelectImagesActivity.EXTRA_IMAGES);
+        Log.i(TAG, "Files to add: " + filesToAdd.length);
+        AddImagesTask task = new AddImagesTask(this, ((Folder) album).getFile());
+        task.execute(filesToAdd);
     }
 
     @Override
@@ -105,6 +113,24 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity {
         startActivity(intent);
     }
 
+    @Override
+    public void onTaskStarted() {
+        setLoading("Adding Images");
+    }
+
+    @Override
+    public void onProgress(String textToShow) {
+        updateLoading(textToShow);
+    }
+
+    @Override
+    public void onTaskComplete() {
+        doneLoading();
+        album.refresh();
+        mAdapter.notifyDataSetChanged();
+        getSupportActionBar().setTitle(getDefaultTitle());
+    }
+
     static class ImageAdapter extends MultiSelectImageAdapter {
 
         private Albumable mAlbum;
@@ -112,11 +138,6 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity {
         ImageAdapter(AlbumablePreviewActivity ctx, Albumable album) {
             super(ctx, ctx, false);
             mAlbum = album;
-        }
-
-        @Override
-        public void onBitmapAvailable(int requestId, Bitmap bitmap) {
-            notifyItemChanged(requestId);
         }
 
         @Override

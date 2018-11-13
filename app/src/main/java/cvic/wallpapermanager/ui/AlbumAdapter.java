@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,9 @@ import cvic.wallpapermanager.model.Tag;
 import cvic.wallpapermanager.model.TagManager;
 import cvic.wallpapermanager.utils.ImageCache;
 
-public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, Albumable.AlbumChangeListener{
+public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, Albumable.AlbumChangeListener {
+
+    private static final String TAG = "cvic.wpm.a_a";
 
     private int size;
 
@@ -58,7 +61,6 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
                 return getItem(holder.getAdapterPosition()).onLongClick(view.getContext());
             }
         });
-
         return holder;
     }
 
@@ -93,7 +95,7 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
         View view = viewHolder.itemView;
         ImageView preview = view.findViewById(R.id.grid_albumable_image);
         TextView label = view.findViewById(R.id.grid_albumable_label);
-        label.setText(mCtx.getString(R.string.albumable_label, item.getName(), item.getCount()));
+        label.setText(mCtx.getResources().getQuantityString(R.plurals.folder_title_plural, item.getCount(), item.getName(), item.getCount()));
         preview.setImageBitmap(mCache.requestImage(item.getPreview(), i, size, size));
     }
 
@@ -125,6 +127,7 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
 
     @Override
     public void onAlbumDelete(int idx) {
+        Log.i(TAG, "Album deleted: " + idx);
         switch (viewType) {
             case Albumable.TYPE_FOLDER:
                 FolderManager.getInstance().removeFolder(idx);
@@ -133,7 +136,8 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
                 TagManager.getInstance().removeTag(idx);
                 break;
         }
-        notifyItemRemoved(idx);
+        flushCache();
+        notifyDataSetChanged();
         if (getItemCount() == 0) {
             mFrag.notifyEmpty(true);
         }

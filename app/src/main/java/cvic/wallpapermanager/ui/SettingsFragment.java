@@ -23,7 +23,7 @@ import cvic.wallpapermanager.utils.FolderPickDialog;
  */
 public class SettingsFragment extends Fragment implements FolderPickDialog.ResultListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener, CompoundButton.OnCheckedChangeListener {
 
-    private static final String TAG = "cvic.wpm.wpfrag";
+    private static final String TAG = "cvic.wpm.s_frag";
 
     private SharedPreferences mPrefs;
     private boolean editEnabled;
@@ -53,7 +53,7 @@ public class SettingsFragment extends Fragment implements FolderPickDialog.Resul
         mRootValue = root.findViewById(R.id.value_root);
         mSetRootBtn = root.findViewById(R.id.set_root_btn);
         mPositionGroup = root.findViewById(R.id.position_radio_group);
-        mRandomOrderCheckBox = root.findViewById(R.id.check_randomorder_enabled);
+        mRandomOrderCheckBox = root.findViewById(R.id.check_random_order_enabled);
     }
 
     private void setListeners () {

@@ -39,7 +39,7 @@ public class FolderPickDialog {
         mActivity = activity;
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         @SuppressLint("InflateParams") View view = LayoutInflater.from(activity).inflate(R.layout.dialog_folderpick_dialog, null, false);
-        mPathTextView = view.findViewById(R.id.textview_path);
+        mPathTextView = view.findViewById(R.id.current_path);
         mRecycler = view.findViewById(R.id.recycler);
         mRecycler.setLayoutManager(new LinearLayoutManager(activity));
         mAdapter = new SimpleAdapter();
@@ -51,7 +51,7 @@ public class FolderPickDialog {
                 upDirectory();
             }
         });
-        Button newBtn = view.findViewById(R.id.button_newfolder);
+        Button newBtn = view.findViewById(R.id.button_new);
         newBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -132,16 +132,16 @@ public class FolderPickDialog {
     private void createFolder(String name) {
         File newFolder = new File(currentDir, name);
         if (newFolder.mkdirs()) {
-            //refresh recyclerview
+            //refresh recycler view
             changeDirectory(newFolder);
         }
     }
 
-    private class SimpleAdapter extends RecyclerView.Adapter {
+    private class SimpleAdapter extends RecyclerView.Adapter<ViewHolder> {
 
         @NonNull
         @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
             View view = LayoutInflater.from(mActivity).inflate(R.layout.card_directory, viewGroup, false);
             final ViewHolder holder = new ViewHolder(view);
             view.setOnClickListener(new View.OnClickListener() {
@@ -154,9 +154,8 @@ public class FolderPickDialog {
         }
 
         @Override
-        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-            View view = viewHolder.itemView;
-            TextView name = view.findViewById(R.id.textview_dir);
+        public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+            TextView name = viewHolder.name;
             name.setText(currentFolders[i]);
         }
 
@@ -166,10 +165,11 @@ public class FolderPickDialog {
         }
     }
 
-    private class ViewHolder extends RecyclerView.ViewHolder {
-
+    private static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView name;
         ViewHolder(@NonNull View itemView) {
             super(itemView);
+            name = itemView.findViewById(R.id.directory_name);
         }
     }
 

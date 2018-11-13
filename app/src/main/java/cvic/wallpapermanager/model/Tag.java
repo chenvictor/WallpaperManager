@@ -8,7 +8,7 @@ import java.io.File;
 
 public class Tag extends Albumable {
 
-    public Tag () {
+    public Tag (String name) {
 
     }
 

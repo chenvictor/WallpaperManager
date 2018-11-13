@@ -8,7 +8,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +31,7 @@ import cvic.wallpapermanager.R;
  */
 public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, View.OnClickListener {
 
-    private static final String TAG = "cvic.wpm.wpfrag";
+    private static final String TAG = "cvic.wpm.wp_frag";
 
     private SharedPreferences mPrefs;
     private boolean editEnabled;
@@ -77,15 +76,15 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         mIntervalValue = general.findViewById(R.id.interval_value);
         mIntervalSpinner = general.findViewById(R.id.interval_spinner);
 
-        View home = root.findViewById(R.id.card_homescreen);
-        mHomeAlbum = home.findViewById(R.id.card_homescreen_album);
+        View home = root.findViewById(R.id.card_home);
+        mHomeAlbum = home.findViewById(R.id.card_home_album);
         mHomeAlbumPreview = mHomeAlbum.findViewById(R.id.preview_image);
         mHomeAlbumDesc = mHomeAlbum.findViewById(R.id.preview_desc);
-        mHomeDoubleTapCheckBox = home.findViewById(R.id.checkbox_homescreen_doubletab_enabled);
+        mHomeDoubleTapCheckBox = home.findViewById(R.id.checkbox_home_double_tap_enabled);
 
-        View lock = root.findViewById(R.id.card_lockscreen);
+        View lock = root.findViewById(R.id.card_lock);
         mLockUseHomeSwitch = lock.findViewById(R.id.lock_use_home_switch);
-        mLockAlbum = lock.findViewById(R.id.card_lockscreen_album);
+        mLockAlbum = lock.findViewById(R.id.card_lock_album);
         mLockAlbumPreview = mLockAlbum.findViewById(R.id.preview_image);
         mLockAlbumDesc = mLockAlbum.findViewById(R.id.preview_desc);
         mLockBlurCheckBox = lock.findViewById(R.id.lock_blur_checkbox);
@@ -221,7 +220,7 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         if (editEnabled) {
             mPrefs.edit().putInt(getString(R.string.key_wallpaper_interval_value), value).apply();
         }
-        //unfocus
+        // un focus
         mIntervalValue.clearFocus();
         //close the keyboard
         try {

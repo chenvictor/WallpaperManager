@@ -38,12 +38,16 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".AddImagesActivity" />
+        <activity android:name=".SelectImagesActivity" />
         <activity
             android:name=".FolderIVA"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_image_view"
             android:theme="@style/FullscreenTheme" />
+        <activity android:name=".AddImagesIVA"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_image_view"
+            android:theme="@style/FullscreenTheme"/>
     </application>
 
 </manifest>

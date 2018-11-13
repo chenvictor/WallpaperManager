@@ -16,13 +16,15 @@
         <item>Tag</item>
     </string-array>
 
-    <string name="folder_title">%s (%d images)</string>
+    <plurals name="folder_title_plural">
+        <item quantity="one">%s (%d image)</item>
+        <item quantity="other">%s (%d images)</item>
+    </plurals>
     <string name="message_rename_failed">Name contains invalid characters.</string>
     <string name="message_no_folders">No images found. Press \'New\' to add a folder</string>
     <string name="message_folder_exists">Folder already exists!</string>
 
     <!-- Preferences -->
-    <string name="folder_preview_image">Folder Preview Image</string>
     <string name="placeholder_string">placeholder</string>
     <string name="confirm">OK</string>
     <string name="cancel">Cancel</string>
@@ -63,15 +65,14 @@
     <string name="key_wallpaper_interval_value">KEY_WALLPAPER_INTERVAL_VALUE</string>
     <string name="key_wallpaper_interval_type">KEY_WALLPAPER_INTERVAL_TYPE</string>
     <string name="key_wallpaper_home_album">KEY_WALLPAPER_HOME_ALBUM</string>
-    <string name="albumable_label">%s (%d images)</string>
     <string name="text_new">New</string>
     <string name="rename">Rename</string>
     <string name="delete">Delete</string>
 
     <string name="title_activity_image_view">ImageViewActivity</string>
     <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
 
-    <string name="title_activity_fullscreen">FullscreenActivity</string>
-    <string name="message_loading">Loading...</string>
+    <string name="message_loading">Loading…</string>
+    <string name="text_back">Back</string>
+    <string name="text_new_folder">New Folder</string>
 </resources>

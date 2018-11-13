@@ -11,7 +11,7 @@ import java.util.List;
 import cvic.wallpapermanager.model.Albumable;
 import cvic.wallpapermanager.utils.JSONUtils;
 
-public class FetchTagsTask extends AsyncTask<String, Void, List<Albumable>> {
+class FetchTagsTask extends AsyncTask<String, Void, List<Albumable>> {
 
     private final TaskListener mListener;
 
@@ -41,7 +41,7 @@ public class FetchTagsTask extends AsyncTask<String, Void, List<Albumable>> {
         mListener.onTagsFetched(tags);
     }
 
-    public interface TaskListener {
+    interface TaskListener {
 
         void onTagsFetched(List<Albumable> tags);
 

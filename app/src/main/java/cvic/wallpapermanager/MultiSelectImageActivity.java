@@ -1,7 +1,7 @@
 package cvic.wallpapermanager;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.support.constraint.Group;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -9,8 +9,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.TextView;
 
 import java.io.File;
 import java.util.Set;
@@ -23,28 +21,27 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
     private static final int GRID_SIZE = 300;
     private static final String TAG = "cvic.wpm.apa";
 
-    private Group overlay;
-    private TextView loadingMessage;
+    private ProgressDialog loadingDialog;
 
-    protected Toolbar toolbar;
-    protected RecyclerView mRecycler;
+    Toolbar toolbar;
 
-    protected MultiSelectImageAdapter mAdapter;
+    private RecyclerView mRecycler;
+
+    MultiSelectImageAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multiselect_image);
         initToolbar();
+        initDialog();
         mRecycler = findViewById(R.id.recycler);
         mAdapter = getAdapter();
+        mAdapter.setSize(GRID_SIZE);
         mRecycler.setAdapter(mAdapter);
         int colSpan = DisplayUtils.getDisplayWidth(this) / GRID_SIZE;
         mRecycler.setLayoutManager(new GridLayoutManager(this, colSpan));
         mRecycler.setHasFixedSize(true);
-        overlay = findViewById(R.id.loading_overlay);
-        loadingMessage = findViewById(R.id.loading_message);
-        doneLoading();  // ensures loading overlay is hidden
     }
 
     private void initToolbar () {
@@ -54,6 +51,12 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
         ActionBar bar = getSupportActionBar();
         assert bar != null;
         bar.setDisplayHomeAsUpEnabled(true);
+    }
+
+    private void initDialog() {
+        loadingDialog = new ProgressDialog(this);
+        loadingDialog.setCancelable(false);
+        loadingDialog.setCanceledOnTouchOutside(false);
     }
 
     @Override
@@ -80,13 +83,15 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
     }
 
     private void defaultBasicMenuOptions(Menu menu) {
-        menu.add("Select All").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                mAdapter.selectAll();
-                return true;
-            }
-        });
+        if (mAdapter.getItemCount() > 0) {
+            menu.add("Select All").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    mAdapter.selectAll();
+                    return true;
+                }
+            });
+        }
     }
 
     private void multiselectBasicMenuOptions(Menu menu) {
@@ -115,13 +120,17 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
         return super.onOptionsItemSelected(item);
     }
 
-    public void setLoading(String message) {
-        overlay.setVisibility(View.VISIBLE);
-        loadingMessage.setText(message);
+    void setLoading(String title) {
+        loadingDialog.setTitle(title);
+        loadingDialog.show();
     }
 
-    public void doneLoading() {
-        overlay.setVisibility(View.GONE);
+    void updateLoading(String message) {
+        loadingDialog.setMessage(message);
+    }
+
+    void doneLoading() {
+        loadingDialog.cancel();
     }
 
     @Override

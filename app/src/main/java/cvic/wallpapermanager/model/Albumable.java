@@ -103,12 +103,12 @@ public abstract class Albumable implements TextInputDialog.ResultListener{
      * @param newName   new name to set to
      * @return          true if the rename was successful, false otherwise
      */
-    public abstract boolean rename(String newName);
+    protected abstract boolean rename(String newName);
 
     /**
      * Deletes the album
      */
-    public abstract void delete(Context ctx);
+    protected abstract void delete(Context ctx);
 
     public interface AlbumChangeListener {
 

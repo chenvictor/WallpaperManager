@@ -58,6 +58,7 @@ public class JSONUtils {
         return null;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void writeString(File file, String data) {
         FileOutputStream outputStream;
         try {

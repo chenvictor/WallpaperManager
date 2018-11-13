@@ -5,15 +5,19 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
 
-import cvic.wallpapermanager.AddImagesActivity;
 import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.SelectImagesActivity;
 import cvic.wallpapermanager.utils.FilterUtils;
+import cvic.wallpapermanager.utils.FolderSelectDialog;
 
 public class Folder extends Albumable {
+
+    private static final String TAG = "cvic.wpm.alb_folder";
 
     public static final String EXTRA_DEST_PATH = "folder.destPath";
     public static final int PICK_IMAGE = 123;
@@ -69,15 +73,15 @@ public class Folder extends Albumable {
 
     @Override
     public void addImage(Activity parent) {
-        Intent intent = new Intent(parent, AddImagesActivity.class);
+        Intent intent = new Intent(parent, SelectImagesActivity.class);
         intent.putExtra(EXTRA_DEST_PATH, mFile.getAbsolutePath());
         parent.startActivityForResult(intent, PICK_IMAGE);
     }
 
     @Override
     public boolean rename(String newName) {
-        Log.i("cvic.wpm.folder", "Renaming from " + getName());
-        Log.i("cvic.wpm.folder", "Renaming to " + newName);
+        Log.i(TAG, "Renaming from " + getName());
+        Log.i(TAG, "Renaming to " + newName);
         if (newName == null) {
             return false;
         }
@@ -92,7 +96,7 @@ public class Folder extends Albumable {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
-    public void delete(Context ctx) {
+    public void delete(final Context ctx) {
         if (getCount() == 0) {
             mFile.delete();
             mListener.onAlbumDelete(listenerIdx);
@@ -109,6 +113,13 @@ public class Folder extends Albumable {
             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
+                    FolderSelectDialog selectFolder = new FolderSelectDialog(ctx, new FolderSelectDialog.ResultListener() {
+                        @Override
+                        public void onResult(int index) {
+                            Log.i(TAG, "Selected Folder: " + FolderManager.getInstance().getFolder(index).getName());
+                        }
+                    }, getId());
+                    selectFolder.show();
                     dialogInterface.dismiss();
 
                 }
@@ -129,6 +140,7 @@ public class Folder extends Albumable {
         }
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "Folder: " + getName();

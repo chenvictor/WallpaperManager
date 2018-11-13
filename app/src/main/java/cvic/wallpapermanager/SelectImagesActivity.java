@@ -1,8 +1,10 @@
 package cvic.wallpapermanager;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,11 +15,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 import cvic.wallpapermanager.model.Folder;
-import cvic.wallpapermanager.tasks.AddImagesTask;
 import cvic.wallpapermanager.ui.MultiSelectImageAdapter;
 import cvic.wallpapermanager.utils.FilterUtils;
 
-public class AddImagesActivity extends MultiSelectImageActivity implements AddImagesTask.TaskListener {
+import static cvic.wallpapermanager.ImageViewActivity.IMAGE_PATH;
+
+public class SelectImagesActivity extends MultiSelectImageActivity {
+
+    public static final String EXTRA_IMAGES = "cvic.wpm.selected_images_extra";
+
+    public static final int RCODE_ADD = 29;
 
     private String destinationPath;
 
@@ -50,17 +57,21 @@ public class AddImagesActivity extends MultiSelectImageActivity implements AddIm
 
     @Override
     public void onSingleImageClick(File file) {
-        Set<File> set = new HashSet<>();
-        set.add(file);
-        addImages(set);
+        Intent intent = new Intent(this, AddImagesIVA.class);
+        intent.putExtra(IMAGE_PATH, file.getAbsolutePath());
+        startActivityForResult(intent, RCODE_ADD);
     }
 
     private void addImages(Set<File> files) {
-        AddImagesTask task = new AddImagesTask(this, new File(destinationPath));
-        File[] array = new File[files.size()];
-        array = files.toArray(array);
-        task.execute(array);
-        setLoading("Adding Images");
+        String[] result = new String[files.size()];
+        int idx = 0;
+        for (File file : files) {
+            result[idx++] = file.getAbsolutePath();
+        }
+        Intent intent = new Intent();
+        intent.putExtra(EXTRA_IMAGES, result);
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
     @Override
@@ -85,10 +96,17 @@ public class AddImagesActivity extends MultiSelectImageActivity implements AddIm
     }
 
     @Override
-    public void onTaskComplete() {
-        doneLoading();
-        setResult(RESULT_OK);
-        finish();
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == RCODE_ADD) {
+            if (resultCode == RESULT_OK && data != null) {
+                String path = data.getStringExtra(IMAGE_PATH);
+                Set<File> set = new HashSet<>();
+                set.add(new File(path));
+                addImages(set);
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     static class DirectoryAdapter extends MultiSelectImageAdapter {

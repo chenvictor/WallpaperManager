@@ -21,7 +21,7 @@ import cvic.wallpapermanager.utils.ImageCache;
 
 public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<MultiSelectImageAdapter.ViewHolder> implements ImageCache.CacheListener {
 
-    private final int size = 300;
+    private int size = 300;
 
     private final MultiSelectListener listener;
     private final Context ctx;
@@ -49,9 +49,13 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         cache = new ImageCache(this);
     }
 
+    public final void setSize(int size) {
+        this.size = size;
+    }
+
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+    public final ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.layout_preview_albumable, viewGroup, false);
         final ViewHolder holder = new ViewHolder(view);
         view.setOnClickListener(new View.OnClickListener() {
@@ -70,7 +74,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+    public final void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
         ImageView image = viewHolder.image;
         TextView label = viewHolder.label;
         Group overlay = viewHolder.overlay;
@@ -78,7 +82,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         if (file.isDirectory()) {
             image.setImageResource(R.drawable.folder_icon);
             int count = file.listFiles(FilterUtils.get(FilterUtils.IMAGE)).length;
-            label.setText(ctx.getString(R.string.albumable_label, file.getName(), count));
+            label.setText(ctx.getResources().getQuantityString(R.plurals.folder_title_plural, count, file.getName(), count));
             overlay.setVisibility(View.INVISIBLE);
         } else {
             if (multiselect && selections.contains(file)) {
@@ -145,11 +149,14 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         return multiselect;
     }
 
-    public Set<File> getSelections() {
+    public final Set<File> getSelections() {
         return selections;
     }
 
-    public void selectAll() {
+    public final void selectAll() {
+        if (getItemCount() == 0) {
+            return;
+        }
         multiselect = true;
         boolean changed = false;
         for (int i = 0; i < getItemCount(); i++) {
@@ -166,24 +173,24 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         }
     }
 
-    public void clearSelections() {
+    public final void clearSelections() {
         multiselect = false;
         selections.clear();
         onSelectionChanged();
         notifyDataSetChanged();
     }
 
-    public void flushCache() {
+    public final void flushCache() {
         cache.flush();
     }
 
     @Override
-    public void onBitmapAvailable(int requestId, Bitmap bitmap) {
+    public final void onBitmapAvailable(int requestId, Bitmap bitmap) {
         notifyItemChanged(requestId);
     }
 
-    public abstract void directoryClicked(File file);
-    public abstract File getFile(int i);
+    protected abstract void directoryClicked(File file);
+    protected abstract File getFile(int i);
     public abstract boolean onBackPressed();
 
     private void onSingleImageClick(File file) {
