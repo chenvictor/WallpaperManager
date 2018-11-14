@@ -1,10 +1,13 @@
 package cvic.wallpapermanager.utils;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import cvic.wallpapermanager.tasks.BitmapWorkerTask;
 
@@ -15,17 +18,14 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     private Bitmap mPlaceholder;
     private LruCache<Integer, Bitmap> cache;
     private CacheListener mListener;
+    private Map<Integer, BitmapWorkerTask> requests;
 
+    @SuppressLint("UseSparseArrays")
     public ImageCache(CacheListener listener) {
         mPlaceholder = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
         mListener = listener;
-//        cache = new LruCache<Integer, Bitmap>((int) Runtime.getRuntime().maxMemory() / (1024 * 8)) {
-//            @Override
-//            protected int sizeOf(@NonNull Integer key, @NonNull Bitmap value) {
-//                return value.getByteCount() / 1024;
-//            }
-//        };
         cache = new LruCache<>(16);
+        requests = new HashMap<>();
     }
 
     /**
@@ -49,12 +49,38 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
             return cached;
         } else {
             BitmapWorkerTask task = new BitmapWorkerTask(file, requestId, this, width, height);
+            requests.put(requestId, task);
             task.execute();
             return mPlaceholder;
         }
     }
 
+    /**
+     * Cancels the BitmapWorkerTask associated with the requestId if it is still running
+     * @param requestId     requestId to cancel
+     */
+    public void cancelRequest (int requestId) {
+        if (requests.containsKey(requestId)) {
+            try {
+                BitmapWorkerTask task = requests.get(requestId);
+                if (task != null) {
+                    task.cancel(true);
+                }
+            } catch (Exception ignored) {
+            } finally {
+                requests.remove(requestId);
+            }
+        }
+    }
+
     public void flush () {
+        for (Integer key : requests.keySet()) {
+            BitmapWorkerTask task = requests.remove(key);
+            if (task != null) {
+                task.cancel(true);
+            }
+        }
+        requests.clear();
         cache.evictAll();
     }
 
@@ -65,6 +91,7 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
             if (mListener != null) {
                 mListener.onBitmapAvailable(requestId, bitmap);
             }
+            requests.remove(requestId);
         }
     }
 

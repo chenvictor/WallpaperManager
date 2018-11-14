@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.utils;
+package cvic.wallpapermanager.dialogs;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -21,7 +21,7 @@ import java.io.FilenameFilter;
 
 import cvic.wallpapermanager.R;
 
-public class FolderPickDialog {
+public class DirectorySelectDialog {
 
     private ResultListener mListener;
 
@@ -34,7 +34,7 @@ public class FolderPickDialog {
     private File currentDir;
     private String[] currentFolders = {};
 
-    public FolderPickDialog(@NonNull Activity activity, final ResultListener listener) {
+    public DirectorySelectDialog(@NonNull Activity activity, final ResultListener listener) {
         mListener = listener;
         mActivity = activity;
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -144,7 +144,7 @@ public class FolderPickDialog {
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
             View view = LayoutInflater.from(mActivity).inflate(R.layout.card_directory, viewGroup, false);
             final ViewHolder holder = new ViewHolder(view);
-            view.setOnClickListener(new View.OnClickListener() {
+            holder.button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     changeDirectory(new File(currentDir, currentFolders[holder.getAdapterPosition()]));
@@ -155,7 +155,7 @@ public class FolderPickDialog {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
-            TextView name = viewHolder.name;
+            Button name = viewHolder.button;
             name.setText(currentFolders[i]);
         }
 
@@ -166,10 +166,10 @@ public class FolderPickDialog {
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name;
+        Button button;
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.directory_name);
+            button = itemView.findViewById(R.id.directory_name);
         }
     }
 

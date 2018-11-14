@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.constraint.Group;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,8 @@ import cvic.wallpapermanager.utils.FilterUtils;
 import cvic.wallpapermanager.utils.ImageCache;
 
 public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<MultiSelectImageAdapter.ViewHolder> implements ImageCache.CacheListener {
+
+    private final String TAG = "cvic.wpm.msia";
 
     private int size = 300;
 
@@ -71,6 +74,13 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
             }
         });
         return holder;
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        Log.i(TAG, "Recycling: " + holder.getAdapterPosition());
+        cache.cancelRequest(holder.getAdapterPosition());
     }
 
     @Override

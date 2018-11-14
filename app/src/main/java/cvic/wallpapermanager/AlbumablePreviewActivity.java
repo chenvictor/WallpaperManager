@@ -128,6 +128,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
         doneLoading();
         album.refresh();
         mAdapter.notifyDataSetChanged();
+        assert (getSupportActionBar() != null);
         getSupportActionBar().setTitle(getDefaultTitle());
     }
 

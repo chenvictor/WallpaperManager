@@ -57,6 +57,7 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
         loadingDialog = new ProgressDialog(this);
         loadingDialog.setCancelable(false);
         loadingDialog.setCanceledOnTouchOutside(false);
+        loadingDialog.setIndeterminate(true);
     }
 
     @Override

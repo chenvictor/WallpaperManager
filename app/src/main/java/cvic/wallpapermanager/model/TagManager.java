@@ -8,7 +8,6 @@ public class TagManager {
     /**
      * Singleton Pattern
      */
-
     private static TagManager instance;
 
     private List<Tag> tags;
@@ -24,10 +23,26 @@ public class TagManager {
         tags = new ArrayList<>();
     }
 
+    protected void addTag(int idx, Tag tag) {
+        tags.add(idx, tag);
+        for (int i = idx; i < tags.size(); i++) {
+            tags.get(i).setId(i);
+        }
+    }
+
     public void addTag(Tag tag) {
         if (tags.add(tag)) {
             tag.setId(tags.size() - 1);
         }
+    }
+
+    boolean hasTag(String name) {
+        for (Tag tag : tags) {
+            if (tag.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void removeTag(Tag tag) {
@@ -43,6 +58,12 @@ public class TagManager {
         if (idx < tags.size()) {
             Tag tag = tags.remove(idx);
             tag.setId(-1);
+        }
+    }
+
+    public void initialize() {
+        for (Folder folder : FolderManager.getInstance()) {
+            addTag(new FolderTag(folder));
         }
     }
 

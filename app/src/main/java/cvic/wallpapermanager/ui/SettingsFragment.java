@@ -16,12 +16,12 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import cvic.wallpapermanager.R;
-import cvic.wallpapermanager.utils.FolderPickDialog;
+import cvic.wallpapermanager.dialogs.DirectorySelectDialog;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class SettingsFragment extends Fragment implements FolderPickDialog.ResultListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener, CompoundButton.OnCheckedChangeListener {
+public class SettingsFragment extends Fragment implements DirectorySelectDialog.ResultListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener, CompoundButton.OnCheckedChangeListener {
 
     private static final String TAG = "cvic.wpm.s_frag";
 
@@ -130,7 +130,7 @@ public class SettingsFragment extends Fragment implements FolderPickDialog.Resul
 
     private void selectRootFolder() {
         if (getActivity() != null) {
-            FolderPickDialog dialog = new FolderPickDialog(getActivity(), this);
+            DirectorySelectDialog dialog = new DirectorySelectDialog(getActivity(), this);
             dialog.setCurrentPath(mPrefs.getString(getString(R.string.key_root_folder), null));
             dialog.show();
         }

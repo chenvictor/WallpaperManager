@@ -5,31 +5,44 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Tag extends Albumable {
 
-    public Tag (String name) {
+    private String name;
+    Set<ImageFile> imageSet;
+    List<ImageFile> imageList;
 
+    public Tag (String name) {
+        this.name = name;
+        imageSet = new HashSet<>();
+        imageList = new ArrayList<>();
     }
 
     @Override
     public String getName() {
-        return null;
+        return name;
     }
 
     @Override
     public File getImage(int idx) {
-        return null;
+        return imageList.get(idx).getFile();
     }
 
     @Override
     public int getCount() {
-        return 0;
+        return imageSet.size();
     }
 
     @Override
     public File getPreview() {
-        return null;
+        if (getCount() == 0) {
+            return null;
+        }
+        return imageList.get(0).getFile();
     }
 
     @Override
@@ -44,7 +57,11 @@ public class Tag extends Albumable {
 
     @Override
     public boolean rename(String newName) {
-        return false;
+        if (TagManager.getInstance().hasTag(newName)) {
+            return false;
+        }
+        this.name = newName;
+        return true;
     }
 
     @Override

@@ -1,33 +1,44 @@
-package cvic.wallpapermanager.utils;
+package cvic.wallpapermanager.dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.Button;
 
 import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.model.Albumable;
 import cvic.wallpapermanager.model.FolderManager;
+import cvic.wallpapermanager.model.TagManager;
 
-public class FolderSelectDialog {
+public class AlbumSelectDialog {
 
     private ResultListener listener;
     private Dialog dialog;
     private RecyclerView recycler;
+    private final int requestCode;
 
-    public FolderSelectDialog (Context ctx, ResultListener listener, int... exclude) {
+    public AlbumSelectDialog(Context ctx, ResultListener listener, int requestCode, int... exclude) {
+        this.requestCode = requestCode;
         this.listener = listener;
         recycler = new RecyclerView(ctx);
         recycler.setLayoutManager(new LinearLayoutManager(ctx));
-        SimpleAdapter adapter = new SimpleAdapter(this, exclude);
+        SimpleAdapter adapter = new SimpleAdapter(this, requestCode, exclude);
         recycler.setAdapter(adapter);
         AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-        builder.setTitle("Select a Folder").setView(recycler);
+        builder.setTitle("Select an Album").setView(recycler);
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
         dialog = builder.create();
     }
 
@@ -37,21 +48,32 @@ public class FolderSelectDialog {
 
     private void clicked(int idx) {
         dialog.dismiss();
-        listener.onResult(idx);
+        listener.onResult(requestCode, idx);
     }
 
     public interface ResultListener {
-        void onResult(int index);
+        void onResult(int requestCode, int index);
     }
 
     private static class SimpleAdapter extends RecyclerView.Adapter<ViewHolder> {
 
+        private int requestCode;
         private boolean[] disabled;
-        private FolderSelectDialog parent;
+        private AlbumSelectDialog parent;
 
-        SimpleAdapter(FolderSelectDialog dialog, int... exclude) {
+        SimpleAdapter(AlbumSelectDialog dialog,int requestCode, int... exclude) {
+            this.requestCode = requestCode;
             parent = dialog;
-            disabled = new boolean[FolderManager.getInstance().size()];
+            switch (requestCode) {
+                case Albumable.TYPE_FOLDER:
+                    disabled = new boolean[FolderManager.getInstance().size()];
+                    break;
+                case Albumable.TYPE_TAG:
+                    disabled = new boolean[TagManager.getInstance().size()];
+                    break;
+                default:
+                    throw new IllegalArgumentException("Request code is invalid");
+            }
             for (int i : exclude) {
                 disabled[i] = true;
             }
@@ -62,7 +84,7 @@ public class FolderSelectDialog {
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
             View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.card_directory, viewGroup, false);
             final ViewHolder holder = new ViewHolder(view);
-            view.setOnClickListener(new View.OnClickListener() {
+            holder.name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     int idx = holder.getAdapterPosition();
@@ -76,12 +98,19 @@ public class FolderSelectDialog {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
-            TextView name = viewHolder.name;
-            name.setText(FolderManager.getInstance().getFolder(i).getName());
-            if (disabled[i]) {
-                name.setAlpha(0.5f);
-            } else {
-                name.setAlpha(1f);
+            Button name = viewHolder.name;
+            name.setText(getItem(i).getName());
+            name.setEnabled(!disabled[i]);
+        }
+
+        private Albumable getItem(int idx) {
+            switch(requestCode) {
+                case Albumable.TYPE_FOLDER:
+                    return FolderManager.getInstance().getFolder(idx);
+                case Albumable.TYPE_TAG:
+                    return TagManager.getInstance().getTag(idx);
+                default:
+                    throw new IllegalStateException("Request code invalid!");
             }
         }
 
@@ -92,7 +121,7 @@ public class FolderSelectDialog {
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name;
+        Button name;
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.directory_name);

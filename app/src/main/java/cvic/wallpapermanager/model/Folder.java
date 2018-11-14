@@ -12,8 +12,8 @@ import java.io.File;
 
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.SelectImagesActivity;
+import cvic.wallpapermanager.dialogs.AlbumSelectDialog;
 import cvic.wallpapermanager.utils.FilterUtils;
-import cvic.wallpapermanager.utils.FolderSelectDialog;
 
 public class Folder extends Albumable {
 
@@ -25,6 +25,8 @@ public class Folder extends Albumable {
     private File mFile;
     private boolean root;
     private File[] images;
+
+    private FolderTag associated;
 
     public Folder(File file, boolean root) {
         mFile = file;
@@ -113,15 +115,15 @@ public class Folder extends Albumable {
             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    FolderSelectDialog selectFolder = new FolderSelectDialog(ctx, new FolderSelectDialog.ResultListener() {
+                    AlbumSelectDialog selectFolder = new AlbumSelectDialog(ctx, new AlbumSelectDialog.ResultListener() {
                         @Override
-                        public void onResult(int index) {
+                        public void onResult(int requestCode, int index) {
                             Log.i(TAG, "Selected Folder: " + FolderManager.getInstance().getFolder(index).getName());
+                            Folder.this.moveContentsTo(FolderManager.getInstance().getFolder(index));
                         }
-                    }, getId());
+                    }, Albumable.TYPE_FOLDER, getId());
                     selectFolder.show();
                     dialogInterface.dismiss();
-
                 }
             });
             builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -140,9 +142,46 @@ public class Folder extends Albumable {
         }
     }
 
+    private void moveContentsTo(Folder target) {
+        for (File file : images) {
+            if(!file.renameTo(getDestination(target, file))) {
+                Log.e(TAG, "Rename failed!");
+            }
+        }
+        target.refresh();
+        if(mFile.delete()) {
+            mListener.onAlbumDelete(listenerIdx);
+        } else {
+            Log.e(TAG, "Failed to delete folder after moving contents!");
+        }
+    }
+
+    private File getDestination(Folder target, File file) {
+        int numFiles = target.getCount();  //lists the number of files already in the folder
+        File ret = new File(target.mFile, file.getName());
+        if (!ret.exists()) {
+            return ret;
+        }
+        for (int i = 0; i < numFiles; i++) {
+            ret = new File(target.mFile, String.valueOf(i) + file.getName());
+            if (!ret.exists()) {
+                return ret;
+            }
+        }
+        return null;
+    }
+
     @NonNull
     @Override
     public String toString() {
         return "Folder: " + getName();
+    }
+
+    public FolderTag getAssociated() {
+        return associated;
+    }
+
+    public void setAssociated(FolderTag associated) {
+        this.associated = associated;
     }
 }

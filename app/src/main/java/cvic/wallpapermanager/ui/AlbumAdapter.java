@@ -58,7 +58,9 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
         view.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                return getItem(holder.getAdapterPosition()).onLongClick(view.getContext());
+                Albumable item = getItem(holder.getAdapterPosition());
+                assert (item != null);
+                return item.onLongClick(view.getContext());
             }
         });
         return holder;

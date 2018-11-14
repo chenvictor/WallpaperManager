@@ -36,6 +36,10 @@
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
             </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/wallpaper" />
+
         </service>
 
         <activity android:name=".SelectImagesActivity" />

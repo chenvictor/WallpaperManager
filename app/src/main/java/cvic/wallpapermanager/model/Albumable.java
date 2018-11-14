@@ -10,9 +10,12 @@ import android.view.View;
 import android.widget.Button;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import cvic.wallpapermanager.R;
-import cvic.wallpapermanager.utils.TextInputDialog;
+import cvic.wallpapermanager.dialogs.TextInputDialog;
 
 public abstract class Albumable implements TextInputDialog.ResultListener{
 
@@ -25,6 +28,12 @@ public abstract class Albumable implements TextInputDialog.ResultListener{
 
     AlbumChangeListener mListener;
     int listenerIdx;
+
+    private Set<ImageFile> images;
+
+    Albumable() {
+        images = new HashSet<>();
+    }
 
     public void setListener(AlbumChangeListener listener, int idx) {
         mListener = listener;
@@ -118,4 +127,16 @@ public abstract class Albumable implements TextInputDialog.ResultListener{
 
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Albumable albumable = (Albumable) o;
+        return id == albumable.id && getName().equals(albumable.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName());
+    }
 }

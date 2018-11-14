@@ -22,14 +22,13 @@ import java.io.File;
 import java.util.List;
 
 import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.dialogs.TextInputDialog;
 import cvic.wallpapermanager.model.Albumable;
 import cvic.wallpapermanager.model.Folder;
 import cvic.wallpapermanager.model.FolderManager;
-import cvic.wallpapermanager.model.Tag;
 import cvic.wallpapermanager.model.TagManager;
 import cvic.wallpapermanager.tasks.FetchFolderTask;
 import cvic.wallpapermanager.utils.DisplayUtils;
-import cvic.wallpapermanager.utils.TextInputDialog;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -87,6 +86,7 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
     }
 
     private void initRecycler() {
+        assert (getActivity() != null);
         int colSpan = DisplayUtils.getDisplayWidth(getActivity()) / GRID_SIZE;
         mRecycler.setLayoutManager(new GridLayoutManager(getContext(), colSpan));
         mAdapter = new AlbumAdapter(this, GRID_SIZE);
@@ -116,7 +116,10 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
 
     private void loadFolders() {
         final String UN_INIT = getString(R.string.uninitialized);
-        String rootPath = getContext().getExternalFilesDir(null).getAbsolutePath();
+        assert (getContext() != null);
+        File file = getContext().getExternalFilesDir(null);
+        assert (file != null);
+        String rootPath = file.getAbsolutePath();
         if (!rootPath.equals(UN_INIT)) {
             new FetchFolderTask(this).execute(rootPath);
         }
@@ -129,7 +132,7 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
     @Override
     public void onFoldersFetched(List<Albumable> folders) {
         FolderManager.getInstance().setFolders(folders);
-        TagManager.getInstance().addTag(new Tag("untagged"));
+        TagManager.getInstance().initialize();
     }
 
     public void notifyEmpty(boolean empty) {
@@ -154,6 +157,7 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
             return;
         }
         //Create New
+        assert (getContext() != null);
         switch(mViewTypeSpinner.getSelectedItemPosition()) {
             case Albumable.TYPE_FOLDER:
                 File file = new File(getContext().getExternalFilesDir(null), input);

@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.utils;
+package cvic.wallpapermanager.dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
