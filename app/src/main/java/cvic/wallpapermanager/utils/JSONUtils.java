@@ -2,6 +2,7 @@ package cvic.wallpapermanager.utils;
 
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -75,6 +76,22 @@ public class JSONUtils {
         } catch (IOException e) {
             Log.i("temp", "IOException");
             e.printStackTrace();
+        }
+    }
+
+    public static String jsonifyImages(String[] images) {
+        JSONObject data = new JSONObject();
+        try {
+            data.put("type", "IMAGE");
+            JSONArray array = new JSONArray();
+            for (String image : images) {
+                array.put(image);
+            }
+            data.put("images", array);
+            return data.toString(0);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

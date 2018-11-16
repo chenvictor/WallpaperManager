@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">WallpaperManager</string>
+    <string name="request_enabled">Live wallpaper is not currently enabled. Enable wallpaper?</string>
+    <string name="confirm_enabled">Live wallpaper enabled!</string>
 
     <!-- Wallpaper -->
     <string-array name="wallpaper_interval_type_spinner">
@@ -25,6 +27,16 @@
     <string name="message_folder_exists">Folder already exists!</string>
 
     <!-- Preferences -->
+    <string-array name="settings_position_descriptions">
+        <item>Will maintain image aspect ratio, scaling to fit within the screen.</item>
+        <item>Will maintain image aspect ratio, scaling to fill the entire screen.</item>
+        <item>Will scale X and Y separately to fill the entire screen.</item>
+    </string-array>
+    <string-array name="settings_transition_descriptions">
+        <item>A simple cross-fade transition</item>
+        <item>New image will slide down from the top, pushing the old one off screen.</item>
+        <item>Horizontal card flip.</item>
+    </string-array>
     <string name="placeholder_string">placeholder</string>
     <string name="confirm">OK</string>
     <string name="cancel">Cancel</string>
@@ -48,13 +60,13 @@
     <string name="text_fit">Fit</string>
     <string name="text_fill">Fill</string>
     <string name="text_stretch">Stretch</string>
-    <string name="text_tile">Tile</string>
 
     <!-- Pref Keys -->
     <string name="uninitialized">NULL</string>
 
     <string name="key_root_folder">KEY_ROOT_FOLDER</string>
     <string name="key_position">KEY_POSITION</string>
+    <string name="key_transition">KEY_TRANSITION</string>
     <string name="key_random_order_enabled">KEY_RANDOM_ORDER_ENABLED</string>
     <string name="key_album_view_type">KEY_ALBUM_VIEW_TYPE</string>
     <string name="key_wallpaper_lock_blur">KEY_WALLPAPER_LOCK_BLUR</string>
@@ -65,6 +77,7 @@
     <string name="key_wallpaper_interval_value">KEY_WALLPAPER_INTERVAL_VALUE</string>
     <string name="key_wallpaper_interval_type">KEY_WALLPAPER_INTERVAL_TYPE</string>
     <string name="key_wallpaper_home_album">KEY_WALLPAPER_HOME_ALBUM</string>
+
     <string name="text_new">New</string>
     <string name="rename">Rename</string>
     <string name="delete">Delete</string>
@@ -76,4 +89,11 @@
     <string name="text_back">Back</string>
     <string name="text_new_folder">New Folder</string>
     <string name="wallpaper_description">temp_description</string>
+    <string name="key_wallpaper_home_album_count">KEY_HOME_ALBUM_COUNT</string>
+    <string name="key_wallpaper_lock_album_count">KEY_LOCK_ALBUM_COUNT</string>
+    <string name="header_transition">Transition</string>
+    <string name="summary_transition">How transitions should be animated</string>
+    <string name="transition_fade">Fade</string>
+    <string name="transition_page">Page</string>
+    <string name="transition_flip">Flip</string>
 </resources>

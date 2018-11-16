@@ -16,10 +16,6 @@
         android:defaultValue="1" />
 
     <Preference
-        android:key="@string/key_wallpaper_home_album"
-        android:defaultValue="null" />
-
-    <Preference
         android:key="@string/key_wallpaper_home_double_tap_enabled"
         android:defaultValue="false" />
 
@@ -28,12 +24,16 @@
         android:defaultValue="true" />
 
     <Preference
-        android:key="@string/key_wallpaper_lock_album"
-        android:defaultValue="null" />
-
-    <Preference
         android:key="@string/key_wallpaper_lock_blur"
         android:defaultValue="false" />
+
+    <Preference
+        android:key="@string/key_wallpaper_home_album"
+        android:defaultValue="@string/uninitialized" />
+
+    <Preference
+        android:key="@string/key_wallpaper_lock_album"
+        android:defaultValue="@string/uninitialized" />
 
     <!-- Albums Screen Values -->
     <Preference
@@ -48,6 +48,10 @@
 
     <Preference
         android:key="@string/key_position"
+        android:defaultValue="1" />
+
+    <Preference
+        android:key="@string/key_transition"
         android:defaultValue="0" />
 
     <Preference

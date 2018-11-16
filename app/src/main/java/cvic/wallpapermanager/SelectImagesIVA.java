@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-public class AddImagesIVA extends ImageViewActivity {
+public class SelectImagesIVA extends ImageViewActivity {
 
     private String path;
 
@@ -12,7 +12,7 @@ public class AddImagesIVA extends ImageViewActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         path = getIntent().getStringExtra(IMAGE_PATH);
-        addButton("Add", new View.OnClickListener() {
+        addButton("Select", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent data = new Intent();

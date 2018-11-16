@@ -1,20 +1,15 @@
 package cvic.wallpapermanager.model;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.dialogs.ContextMenuDialog;
 import cvic.wallpapermanager.dialogs.TextInputDialog;
 
 public abstract class Albumable implements TextInputDialog.ResultListener{
@@ -41,7 +36,7 @@ public abstract class Albumable implements TextInputDialog.ResultListener{
     }
 
     public boolean onLongClick(Context ctx) {
-        Dialog menu = getContextMenu(ctx);
+        ContextMenuDialog menu = getContextMenu(ctx);
         if (menu != null) {
             menu.show();
             return true;
@@ -49,26 +44,18 @@ public abstract class Albumable implements TextInputDialog.ResultListener{
         return false;
     }
 
-    private Dialog getContextMenu(final Context ctx) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-        builder.setTitle(toString());
-        @SuppressLint("InflateParams") View view = LayoutInflater.from(ctx).inflate(R.layout.dialog_albumable_ctx_menu, null);
-        builder.setView(view);
-        final Dialog dialog = builder.create();
-        Button btnRename = view.findViewById(R.id.btn_rename);
-        Button btnDelete = view.findViewById(R.id.btn_delete);
-        btnRename.setOnClickListener(new View.OnClickListener() {
+    private ContextMenuDialog getContextMenu(final Context ctx) {
+        ContextMenuDialog dialog = new ContextMenuDialog(ctx, toString());
+        dialog.addButton("Rename", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dialog.dismiss();
                 TextInputDialog renameDialog = new TextInputDialog(ctx, Albumable.this, "Rename", getName());
                 renameDialog.show();
             }
         });
-        btnDelete.setOnClickListener(new View.OnClickListener() {
+        dialog.addButton("Delete", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dialog.dismiss();
                 delete(ctx);
             }
         });

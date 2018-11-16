@@ -31,6 +31,9 @@ public class SettingsFragment extends Fragment implements DirectorySelectDialog.
     private TextView mRootValue;
     private Button mSetRootBtn;
     private RadioGroup mPositionGroup;
+    private TextView mPositionDesc;
+    private RadioGroup transitionGroup;
+    private TextView transitionDesc;
     private CheckBox mRandomOrderCheckBox;
 
     public SettingsFragment() {
@@ -53,12 +56,16 @@ public class SettingsFragment extends Fragment implements DirectorySelectDialog.
         mRootValue = root.findViewById(R.id.value_root);
         mSetRootBtn = root.findViewById(R.id.set_root_btn);
         mPositionGroup = root.findViewById(R.id.position_radio_group);
+        mPositionDesc = root.findViewById(R.id.position_description);
+        transitionGroup = root.findViewById(R.id.transition_radio_group);
+        transitionDesc = root.findViewById(R.id.transition_description);
         mRandomOrderCheckBox = root.findViewById(R.id.check_random_order_enabled);
     }
 
     private void setListeners () {
         mSetRootBtn.setOnClickListener(this);
         mPositionGroup.setOnCheckedChangeListener(this);
+        transitionGroup.setOnCheckedChangeListener(this);
         mRandomOrderCheckBox.setOnCheckedChangeListener(this);
     }
 
@@ -66,7 +73,8 @@ public class SettingsFragment extends Fragment implements DirectorySelectDialog.
         editEnabled = false;    // lock editing until initialization is done
 
         mRootValue.setText(mPrefs.getString(getString(R.string.key_root_folder), getString(R.string.uninitialized)));
-        ((RadioButton) mPositionGroup.getChildAt(mPrefs.getInt(getString(R.string.key_position), 0))).setChecked(true);
+        ((RadioButton) mPositionGroup.getChildAt(mPrefs.getInt(getString(R.string.key_position), 1))).setChecked(true);
+        ((RadioButton) transitionGroup.getChildAt(mPrefs.getInt(getString(R.string.key_transition), 0))).setChecked(true);
         mRandomOrderCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_random_order_enabled), false));
 
         editEnabled = true;     // unlock editing
@@ -83,6 +91,8 @@ public class SettingsFragment extends Fragment implements DirectorySelectDialog.
     public void onCheckedChanged(RadioGroup radioGroup, int id) {
         if (mPositionGroup.equals(radioGroup)) {
             positionTypeChecked(radioGroup.indexOfChild(radioGroup.findViewById(id)));
+        } else if (transitionGroup.equals(radioGroup)) {
+            transitionTypeChecked(radioGroup.indexOfChild(radioGroup.findViewById(id)));
         }
     }
 
@@ -115,6 +125,19 @@ public class SettingsFragment extends Fragment implements DirectorySelectDialog.
         if (editEnabled) {
             mPrefs.edit().putInt(getString(R.string.key_position), idx).apply();
         }
+        mPositionDesc.setText(getResources().getStringArray(R.array.settings_position_descriptions)[idx]);
+    }
+
+    /**
+     * Handling setting of transition type,
+     *  updating the pref if necessary
+     * @param idx           new index of checked button
+     */
+    private void transitionTypeChecked (int idx) {
+        if (editEnabled) {
+            mPrefs.edit().putInt(getString(R.string.key_transition), idx).apply();
+        }
+        transitionDesc.setText(getResources().getStringArray(R.array.settings_transition_descriptions)[idx]);
     }
 
     /**

@@ -2,12 +2,14 @@ package cvic.wallpapermanager.ui;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,9 +24,19 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.Locale;
 
 import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.SelectImagesActivity;
+import cvic.wallpapermanager.dialogs.ContextMenuDialog;
+import cvic.wallpapermanager.utils.JSONUtils;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -32,6 +44,9 @@ import cvic.wallpapermanager.R;
 public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, View.OnClickListener {
 
     private static final String TAG = "cvic.wpm.wp_frag";
+    private static final int RCODE_SELECT_FOLDER = 100;
+    private static final int RCODE_SELECT_TAG = 101;
+    private static final int RCODE_SELECT_IMAGE = 102;
 
     private SharedPreferences mPrefs;
     private boolean editEnabled;
@@ -116,13 +131,13 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
 
         // Home
         //TODO image must also be changed
-        mHomeAlbumDesc.setText(mPrefs.getString(getString(R.string.key_wallpaper_home_album), getString(R.string.uninitialized)));
+        mHomeAlbumDesc.setText(getDesc(mPrefs.getString(getString(R.string.key_wallpaper_home_album), getString(R.string.uninitialized))));
         mHomeDoubleTapCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_home_double_tap_enabled), false));
 
         // Lock
         mLockUseHomeSwitch.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_lock_use_home), true));
         //TODO image must also be changed
-        mLockAlbumDesc.setText(mPrefs.getString(getString(R.string.key_wallpaper_lock_album), getString(R.string.uninitialized)));
+        mLockAlbumDesc.setText(getDesc(mPrefs.getString(getString(R.string.key_wallpaper_lock_album), getString(R.string.uninitialized))));
         mLockBlurCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_lock_blur), false));
 
         editEnabled = true;     // unlock editing
@@ -177,9 +192,9 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     @Override
     public void onClick(View view) {
         if (mHomeAlbum.equals(view)) {
-            changeAlbum(getString(R.string.key_wallpaper_home_album), mHomeAlbumPreview, mHomeAlbumDesc);
+            changeAlbum(0);
         } else if (mLockAlbum.equals(view)) {
-            changeAlbum(getString(R.string.key_wallpaper_lock_album), mLockAlbumPreview, mLockAlbumDesc);
+            changeAlbum(1);
         }
     }
 
@@ -267,9 +282,112 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         }
     }
 
-    private void changeAlbum(String prefKey, ImageView image, TextView desc) {
+    /**
+     * Initiates an album change
+     * @param id    0 for Home screen
+     *              1 for Lock screen
+     */
+    private void changeAlbum(int id) {
         //TODO, open select album activity
-        Toast.makeText(getContext(), "Select album: " + prefKey, Toast.LENGTH_SHORT).show();
+        ContextMenuDialog dialog = new ContextMenuDialog(getContext(), "Album Type");
+        dialog.addButton("Folder", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i(TAG, "Folder selected");
+            }
+        });
+        dialog.addButton("Tag", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i(TAG, "Tag selected");
+            }
+        });
+        dialog.addButton("Image", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i(TAG, "Image selected");
+                Intent intent = new Intent(getContext(), SelectImagesActivity.class);
+                Context ctx = getContext();
+                assert (ctx != null);
+                File externalDir = ctx.getExternalFilesDir(null);
+                assert (externalDir != null);
+                intent.putExtra(SelectImagesActivity.EXTRA_ROOT, externalDir.getAbsolutePath());
+                startActivityForResult(intent, RCODE_SELECT_IMAGE);
+            }
+        });
+        dialog.show();
+        currentlySelecting = id;
+    }
+
+    private String getDesc(String preferenceString) {
+        if (preferenceString.equals(getString(R.string.uninitialized))) {
+            return preferenceString;
+        }
+        try {
+            JSONObject data = new JSONObject(preferenceString);
+            String appendage = "";
+            String type = data.getString("type");
+            switch (type) {
+                case "FOLDER":
+                    break;
+                case "TAG":
+                    break;
+                case "IMAGE":
+                    appendage = String.format(Locale.getDefault(), "(%d)", data.getJSONArray("images").length());
+                    break;
+            }
+            return type + " " + appendage;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return getString(R.string.uninitialized);
+    }
+
+    private int currentlySelecting = -1;
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == RCODE_SELECT_IMAGE) {
+                String[] images = data.getStringArrayExtra(SelectImagesActivity.EXTRA_IMAGES);
+                Log.i(TAG, images.length + " images picked");
+                setAlbumImages(currentlySelecting, images);
+                currentlySelecting = -1;
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void setAlbumImages(int id, String[] images) {
+        TextView desc;
+        String prefKey;
+        String countKey;
+        switch (id) {
+            case 0:
+                desc = mHomeAlbumDesc;
+                prefKey = getString(R.string.key_wallpaper_home_album);
+                countKey = getString(R.string.key_wallpaper_home_album_count);
+                break;
+            case 1:
+                desc = mLockAlbumDesc;
+                prefKey = getString(R.string.key_wallpaper_lock_album);
+                countKey = getString(R.string.key_wallpaper_lock_album_count);
+                break;
+            default:
+                return;
+        }
+        String output = JSONUtils.jsonifyImages(images);
+        if (output == null) {
+            output = getString(R.string.uninitialized);
+        }
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences.Editor editor = prefs.edit();
+
+        editor.putString(prefKey, output);
+        editor.putInt(countKey, images.length);
+        editor.apply();
+        desc.setText(getDesc(output));
     }
 
 }

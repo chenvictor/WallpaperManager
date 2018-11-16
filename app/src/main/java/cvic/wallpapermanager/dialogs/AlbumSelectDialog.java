@@ -82,7 +82,7 @@ public class AlbumSelectDialog {
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-            View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.card_directory, viewGroup, false);
+            View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.button_flush, viewGroup, false);
             final ViewHolder holder = new ViewHolder(view);
             holder.name.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -124,7 +124,7 @@ public class AlbumSelectDialog {
         Button name;
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.directory_name);
+            name = itemView.findViewById(R.id.button);
         }
     }
 

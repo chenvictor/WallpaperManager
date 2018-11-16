@@ -142,7 +142,7 @@ public class DirectorySelectDialog {
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-            View view = LayoutInflater.from(mActivity).inflate(R.layout.card_directory, viewGroup, false);
+            View view = LayoutInflater.from(mActivity).inflate(R.layout.button_flush, viewGroup, false);
             final ViewHolder holder = new ViewHolder(view);
             holder.button.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -169,7 +169,7 @@ public class DirectorySelectDialog {
         Button button;
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            button = itemView.findViewById(R.id.directory_name);
+            button = itemView.findViewById(R.id.button);
         }
     }
 

@@ -74,8 +74,7 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     }
 
     public void flush () {
-        for (Integer key : requests.keySet()) {
-            BitmapWorkerTask task = requests.remove(key);
+        for (BitmapWorkerTask task : requests.values()) {
             if (task != null) {
                 task.cancel(true);
             }

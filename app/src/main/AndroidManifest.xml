@@ -36,10 +36,10 @@
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
             </intent-filter>
+
             <meta-data
                 android:name="android.service.wallpaper"
                 android:resource="@xml/wallpaper" />
-
         </service>
 
         <activity android:name=".SelectImagesActivity" />
@@ -48,10 +48,12 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_image_view"
             android:theme="@style/FullscreenTheme" />
-        <activity android:name=".AddImagesIVA"
+        <activity
+            android:name=".SelectImagesIVA"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_image_view"
-            android:theme="@style/FullscreenTheme"/>
+            android:theme="@style/FullscreenTheme" />
+        <activity android:name=".AlbumSelectActivity" />
     </application>
 
 </manifest>

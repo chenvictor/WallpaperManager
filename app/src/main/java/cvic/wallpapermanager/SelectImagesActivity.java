@@ -14,7 +14,6 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import cvic.wallpapermanager.model.Folder;
 import cvic.wallpapermanager.ui.MultiSelectImageAdapter;
 import cvic.wallpapermanager.utils.FilterUtils;
 
@@ -23,26 +22,29 @@ import static cvic.wallpapermanager.ImageViewActivity.IMAGE_PATH;
 public class SelectImagesActivity extends MultiSelectImageActivity {
 
     public static final String EXTRA_IMAGES = "cvic.wpm.selected_images_extra";
+    public static final String EXTRA_ROOT = "cvic.wpm.section_root_extra";
 
     public static final int RCODE_ADD = 29;
-
-    private String destinationPath;
+    private File rootPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        destinationPath = getIntent().getStringExtra(Folder.EXTRA_DEST_PATH);
+        if (getIntent().hasExtra(EXTRA_ROOT)) {
+            rootPath = new File(getIntent().getStringExtra(EXTRA_ROOT));
+        } else {
+            //defaults to shared preference root path
+            rootPath = getRootPath();
+            if (rootPath == null) {
+                Toast.makeText(this, "Root path invalid!", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
         super.onCreate(savedInstanceState);
     }
 
     @Override
     protected MultiSelectImageAdapter getAdapter() {
-        File root = getRootPath();
-        if (root == null) {
-            Toast.makeText(this, "Root path invalid!", Toast.LENGTH_SHORT).show();
-            finish();
-            return null;
-        }
-        return new DirectoryAdapter(this, this, root);
+        return new DirectoryAdapter(this, this, rootPath);
     }
 
     private File getRootPath() {
@@ -57,7 +59,7 @@ public class SelectImagesActivity extends MultiSelectImageActivity {
 
     @Override
     public void onSingleImageClick(File file) {
-        Intent intent = new Intent(this, AddImagesIVA.class);
+        Intent intent = new Intent(this, SelectImagesIVA.class);
         intent.putExtra(IMAGE_PATH, file.getAbsolutePath());
         startActivityForResult(intent, RCODE_ADD);
     }
@@ -76,7 +78,7 @@ public class SelectImagesActivity extends MultiSelectImageActivity {
 
     @Override
     protected String getDefaultTitle() {
-        return "Add Images";
+        return "Select Images";
     }
 
     @Override
@@ -86,7 +88,7 @@ public class SelectImagesActivity extends MultiSelectImageActivity {
 
     @Override
     protected void multiselectMenuOptions(Menu menu) {
-        menu.add("Add Images").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        menu.add("Select Images").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 addImages(mAdapter.getSelections());

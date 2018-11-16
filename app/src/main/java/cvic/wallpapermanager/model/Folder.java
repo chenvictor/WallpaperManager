@@ -19,7 +19,6 @@ public class Folder extends Albumable {
 
     private static final String TAG = "cvic.wpm.alb_folder";
 
-    public static final String EXTRA_DEST_PATH = "folder.destPath";
     public static final int PICK_IMAGE = 123;
 
     private File mFile;
@@ -76,7 +75,6 @@ public class Folder extends Albumable {
     @Override
     public void addImage(Activity parent) {
         Intent intent = new Intent(parent, SelectImagesActivity.class);
-        intent.putExtra(EXTRA_DEST_PATH, mFile.getAbsolutePath());
         parent.startActivityForResult(intent, PICK_IMAGE);
     }
 
