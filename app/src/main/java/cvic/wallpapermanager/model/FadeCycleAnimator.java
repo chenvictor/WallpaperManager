@@ -3,7 +3,12 @@ package cvic.wallpapermanager.model;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
-public class CrossFadeCycleAnimator extends CycleAnimator {
+/**
+ *  Provides a cross-fade animation.
+ *     The incoming image grows in opacity
+ *     until it is fully opaque.
+ */
+public class FadeCycleAnimator extends CycleAnimator {
     private int alpha = 0;
     private Paint fromPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private Paint toPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);

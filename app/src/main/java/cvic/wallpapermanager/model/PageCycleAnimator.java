@@ -3,6 +3,11 @@ package cvic.wallpapermanager.model;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
+/**
+ * Provides a paging animation.
+ *  The incoming image pushes the old image
+ *  off from the top of the screen.
+ */
 public class PageCycleAnimator extends CycleAnimator {
 
     private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);

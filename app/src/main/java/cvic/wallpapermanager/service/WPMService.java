@@ -8,10 +8,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.renderscript.Allocation;
@@ -27,16 +24,22 @@ import android.view.SurfaceHolder;
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.model.AlbumCycler;
 import cvic.wallpapermanager.model.AlbumCyclerFactory;
-import cvic.wallpapermanager.model.CrossFadeCycleAnimator;
+import cvic.wallpapermanager.model.BitmapPlacer;
 import cvic.wallpapermanager.model.CycleAnimator;
+import cvic.wallpapermanager.model.FadeCycleAnimator;
+import cvic.wallpapermanager.model.FillPlacer;
+import cvic.wallpapermanager.model.FitPlacer;
 import cvic.wallpapermanager.model.FlipCycleAnimator;
 import cvic.wallpapermanager.model.NullCycleAnimator;
+import cvic.wallpapermanager.model.NullPlacer;
 import cvic.wallpapermanager.model.PageCycleAnimator;
+import cvic.wallpapermanager.model.StretchPlacer;
 
 public class WPMService extends WallpaperService {
 
     private static final int DEFAULT_WIDTH = 500, DEFAULT_HEIGHT = 1000;
     private static final String TAG = "cvic.wpm.service";
+
     private static final int POSITION_FIT = 0;
     private static final int POSITION_FILL = 1;
     private static final int POSITION_STRETCH = 2;
@@ -56,9 +59,13 @@ public class WPMService extends WallpaperService {
 
         private boolean dimensInit = false;
 
+        private BitmapPlacer bitmapPlacer;
         private CycleAnimator cycleAnimator;
         private AlbumCycler homeCycler;
         private AlbumCycler lockCycler;
+
+        private Bitmap lockBitmap;
+        private Bitmap homeBitmap;
 
         private RenderScript script;
         private ScriptIntrinsicBlur blurIntrinsic;
@@ -66,17 +73,16 @@ public class WPMService extends WallpaperService {
         private GestureDetector gestureDetector;
         private PhoneUnlockedReceiver receiver;
 
-        private Matrix helperMatrix = new Matrix();
         private int width = DEFAULT_WIDTH;
         private int height = DEFAULT_HEIGHT;
 
+        private boolean visible = true;
         /**
          * Preferences
          */
         private boolean doubleTap;
         private boolean blurLock;
         private boolean lockUseHome;
-        private int position;
         private boolean randomOrder;
         private boolean changeOnInterval;
 
@@ -93,10 +99,9 @@ public class WPMService extends WallpaperService {
             doubleTap = doubleTapEnabled(prefs);
             blurLock = blurLockEnabled(prefs);
             lockUseHome = lockUseHomeEnabled(prefs);
-            position = getPositionType(prefs);
             loadRenderScript();
             loadCyclers(prefs);
-            //cycleAnimator = new CrossFadeCycleAnimator();
+            updatePositionType(prefs);
             updateTransitionType(prefs);
         }
 
@@ -118,13 +123,8 @@ public class WPMService extends WallpaperService {
         }
 
         private void setDimens(int width, int height) {
-            this.width = width;
-            this.height = height;
-            boolean temp = homeCycler.setDimens(width, height);
-            boolean temp2 = lockCycler.setDimens(width, height);
-            if (temp || temp2) {
-                requestDraw();
-            }
+            homeCycler.setDimens(width, height);
+            lockCycler.setDimens(width, height);
         }
 
         @Override
@@ -139,6 +139,17 @@ public class WPMService extends WallpaperService {
         }
 
         @Override
+        public void onVisibilityChanged(boolean visible) {
+            super.onVisibilityChanged(visible);
+            this.visible = visible;
+            if (!visible) {
+                if (cycleAnimator.isAnimating()) {
+                    cycleAnimator.stopCycle();  //cancel any ongoing animation if wallpaper not visible
+                }
+            }
+        }
+
+        @Override
         public void onDestroy() {
             super.onDestroy();
             PreferenceManager.getDefaultSharedPreferences(ctx).unregisterOnSharedPreferenceChangeListener(this);
@@ -150,17 +161,24 @@ public class WPMService extends WallpaperService {
             super.onSurfaceCreated(holder);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
             loadCyclers(prefs);
+            placeBitmaps();
             requestDraw();
         }
 
         @Override
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
+            this.width = width;
+            this.height = height;
             if (!dimensInit) {
                 Log.i(TAG, "Initializing dimens: " + width + "x" + height);
                 setDimens(width, height);
                 dimensInit = true;
             }
+            if (cycleAnimator.isAnimating()) {
+                cycleAnimator.stopCycle();
+            }
+            placeBitmaps();
             requestDraw();
         }
 
@@ -187,17 +205,17 @@ public class WPMService extends WallpaperService {
             if (cycleAnimator.isAnimating()) {
                 return; //in middle of another cycle, wait
             }
-
-            final Bitmap from = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            final Bitmap to = from.copy(from.getConfig(), true);
-            positionBitmap(from , homeCycler.getBitmap());
+            final Bitmap from = homeBitmap.copy(homeBitmap.getConfig(), true);
             homeCycler.cycle(randomOrder);
-            positionBitmap(to, homeCycler.getBitmap());
+            homeBitmap.recycle();
+            homeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            bitmapPlacer.positionBitmap(homeBitmap, homeCycler.getBitmap());
+            final Bitmap to = homeBitmap.copy(from.getConfig(), true);
+
             cycleAnimator.requestCycle(getSurfaceHolder(), from, to, new CycleAnimator.AnimatorListener() {
                 @Override
                 public void runOnFinish() {
                     from.recycle();
-                    to.recycle();
                     requestDraw();
                 }
             }, 40, 500);
@@ -215,14 +233,26 @@ public class WPMService extends WallpaperService {
             return prefs.getBoolean(getString(R.string.key_wallpaper_lock_use_home), true);
         }
 
-        private int getPositionType(SharedPreferences prefs) {
-            return prefs.getInt(getString(R.string.key_position), POSITION_FIT);
+        private void updatePositionType(SharedPreferences prefs) {
+            switch (prefs.getInt(getString(R.string.key_position), POSITION_FILL)) {
+                case POSITION_FIT:
+                    bitmapPlacer = new FitPlacer();
+                    break;
+                case POSITION_FILL:
+                    bitmapPlacer = new FillPlacer();
+                    break;
+                case POSITION_STRETCH:
+                    bitmapPlacer = new StretchPlacer();
+                    break;
+                default:
+                    bitmapPlacer = new NullPlacer();
+            }
         }
 
         private void updateTransitionType(SharedPreferences prefs) {
             switch (prefs.getInt(getString(R.string.key_transition), TRANSITION_FADE)) {
                 case TRANSITION_FADE:
-                    cycleAnimator = new CrossFadeCycleAnimator();
+                    cycleAnimator = new FadeCycleAnimator();
                     break;
                 case TRANSITION_PAGE:
                     cycleAnimator = new PageCycleAnimator();
@@ -246,10 +276,10 @@ public class WPMService extends WallpaperService {
             Bitmap toDraw;
             if (receiver.locked && !lockUseHome) {
                 Log.i(TAG, "Drawing lockscreen");
-                toDraw = lockCycler.getBitmap();
+                toDraw = lockBitmap;
             } else {
                 Log.i(TAG, "Drawing homescreen");
-                toDraw = homeCycler.getBitmap();
+                toDraw = homeBitmap;
             }
             if (receiver.locked && blurLock) {
                 Bitmap blur = toDraw.copy(toDraw.getConfig(), true);
@@ -271,19 +301,7 @@ public class WPMService extends WallpaperService {
             try {
                 canvas = holder.lockCanvas();
                 if (canvas != null) {
-                    switch (position) {
-                        case POSITION_FIT:
-                            drawFit(canvas, holder, bitmap);
-                            break;
-                        case POSITION_FILL:
-                            drawFill(canvas, holder, bitmap);
-                            break;
-                        case POSITION_STRETCH:
-                            drawStretch(canvas, holder, bitmap);
-                            break;
-                        default:
-                            drawStretch(canvas, holder, bitmap);
-                    }
+                    canvas.drawBitmap(bitmap, 0, 0, ANTI_ALIAS);
                 } else {
                     Log.i(TAG, "canvas was null");
                 }
@@ -294,111 +312,21 @@ public class WPMService extends WallpaperService {
             }
         }
 
-        private void drawFit(Canvas canvas, SurfaceHolder holder, Bitmap bitmap) {
-            helperMatrix.reset();
-            canvas.drawColor(Color.BLACK); //Fill needs to paint over since it may not cover the whole screen
-            if (helperMatrix.setRectToRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), new RectF(holder.getSurfaceFrame()), Matrix.ScaleToFit.CENTER)) {
-                canvas.drawBitmap(bitmap, helperMatrix, ANTI_ALIAS);
+        private void placeBitmaps() {
+            if (homeBitmap != null) {
+                homeBitmap.recycle();
+            }
+            if (lockBitmap != null) {
+                lockBitmap.recycle();
+            }
+            homeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            lockBitmap = homeBitmap.copy(Bitmap.Config.ARGB_8888, true);
+            bitmapPlacer.positionBitmap(homeBitmap, homeCycler.getBitmap());
+            if (lockUseHome) {
+                lockBitmap = homeBitmap.copy(Bitmap.Config.ARGB_8888, false);
             } else {
-                //Default to stretch
-                Log.e(TAG, "Failed to set fill matrix, default to stretch");
-                drawStretch(canvas, holder, bitmap);
+                bitmapPlacer.positionBitmap(lockBitmap, lockCycler.getBitmap());
             }
-        }
-
-        private void drawFill(Canvas canvas, SurfaceHolder holder, Bitmap bitmap) {
-            helperMatrix.reset();
-            float srcHeight = bitmap.getHeight();
-            float srcWidth = bitmap.getWidth();
-            float destHeight = holder.getSurfaceFrame().height();
-            float destWidth = holder.getSurfaceFrame().width();
-            float aspectRatioSrc = srcHeight / srcWidth;
-            float aspectRatioDest = destHeight / destWidth;
-            float offsetX;
-            float offsetY;
-            float scale;
-            if (aspectRatioSrc < aspectRatioDest) {
-                //Src more landscape than dest, fit the height
-                scale = destHeight / srcHeight;
-                offsetY = 0;
-                offsetX = (destWidth - srcWidth * scale) / 2;
-            } else {
-                //Src more portrait or equal, fit the width
-                scale = destWidth / srcWidth;
-                offsetX = 0;
-                offsetY = (destHeight - srcHeight * scale) / 2;
-            }
-            helperMatrix.postTranslate(offsetX, offsetY);
-            helperMatrix.preScale(scale, scale);
-            canvas.drawBitmap(bitmap, helperMatrix, ANTI_ALIAS);
-        }
-
-        private void drawStretch(Canvas canvas, SurfaceHolder holder, Bitmap bitmap) {
-            canvas.drawBitmap(bitmap, null, holder.getSurfaceFrame(), ANTI_ALIAS);
-        }
-
-        /**
-         * Positions a src bitmap onto the target according to the position type
-         * @param target        target bitmap, should be of the desired height
-         * @param src           source bitmap
-         */
-        private void positionBitmap(Bitmap target, Bitmap src) {
-            switch (position) {
-                case POSITION_FIT:
-                    positionFit(target, src);
-                    break;
-                case POSITION_FILL:
-                    positionFill(target, src);
-                    break;
-                case POSITION_STRETCH:
-                    positionStretch(target, src);
-                    break;
-            }
-        }
-
-        private void positionFit(Bitmap target, Bitmap src) {
-            Canvas canvas = new Canvas(target);
-            helperMatrix.reset();
-            canvas.drawColor(Color.BLACK); //Fill needs to paint over since it may not cover the whole screen
-            RectF targetRect = new RectF(0, 0, target.getWidth(), target.getHeight());
-            RectF sourceRect = new RectF(0, 0, src.getWidth(), src.getHeight());
-            if (helperMatrix.setRectToRect(sourceRect, targetRect, Matrix.ScaleToFit.CENTER)) {
-                canvas.drawBitmap(src, helperMatrix, ANTI_ALIAS);
-            }
-        }
-
-        private void positionFill(Bitmap target, Bitmap src) {
-            Canvas canvas = new Canvas(target);
-            helperMatrix.reset();
-            float srcHeight = src.getHeight();
-            float srcWidth = src.getWidth();
-            float destHeight = target.getHeight();
-            float destWidth = target.getWidth();
-            float aspectRatioSrc = srcHeight / srcWidth;
-            float aspectRatioDest = destHeight / destWidth;
-            float offsetX;
-            float offsetY;
-            float scale;
-            if (aspectRatioSrc < aspectRatioDest) {
-                //Src more landscape than dest, fit the height
-                scale = destHeight / srcHeight;
-                offsetY = 0;
-                offsetX = (destWidth - srcWidth * scale) / 2;
-            } else {
-                //Src more portrait or equal, fit the width
-                scale = destWidth / srcWidth;
-                offsetX = 0;
-                offsetY = (destHeight - srcHeight * scale) / 2;
-            }
-            helperMatrix.postTranslate(offsetX, offsetY);
-            helperMatrix.preScale(scale, scale);
-            canvas.drawBitmap(src, helperMatrix, ANTI_ALIAS);
-        }
-
-        private void positionStretch(Bitmap target, Bitmap src) {
-            Canvas canvas = new Canvas(target);
-            RectF targetRect = new RectF(0, 0, target.getWidth(), target.getHeight());
-            canvas.drawBitmap(src, null, targetRect, ANTI_ALIAS);
         }
 
         /**
@@ -428,7 +356,7 @@ public class WPMService extends WallpaperService {
                 loadCyclers(prefs);
                 requestDraw();
             } else if (key.equals(getString(R.string.key_position))) {
-                position = getPositionType(prefs);
+                updatePositionType(prefs);
                 requestDraw();
             } else if (key.equals(getString(R.string.key_random_order_enabled))) {
                 randomOrder = getRandomOrderEnabled(prefs);
@@ -436,7 +364,7 @@ public class WPMService extends WallpaperService {
                 changeOnInterval = getChangeOnIntervalEnabled(prefs);
                 //requestCycle();
             } else if (key.equals(getString(R.string.key_transition))) {
-                cycleAnimator.cancelCycle();
+                cycleAnimator.stopCycle();
                 updateTransitionType(prefs);
             }
         }

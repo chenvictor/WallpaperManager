@@ -47,18 +47,20 @@ public abstract class CycleAnimator  {
      * Cancels the current cycler, firing the callback immediately
      *  usually used if the CycleAnimator is being replaced
      */
-    public void cancelCycle() {
+    public void stopCycle() {
         handler.removeCallbacks(cycleRunnable);
         isAnimating = false;
-        listener.runOnFinish();
+        if (listener != null) {
+            listener.runOnFinish();
+            listener = null;    //set to null to prevent multiple calls to stopCycle notifying the listener
+        }
     }
 
     private void cycle() {
         if (animate() && isAnimating) {
             handler.postDelayed(cycleRunnable, (1000 / fps));
         } else {
-            isAnimating = false;
-            listener.runOnFinish();
+            stopCycle();
         }
     }
 
