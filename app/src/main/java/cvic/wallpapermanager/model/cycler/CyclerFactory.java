@@ -1,12 +1,12 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.cycler;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class AlbumCyclerFactory {
+public class CyclerFactory {
 
-    public static AlbumCycler from(String prefValue) {
+    public static Cycler create(String prefValue) {
         try {
             JSONObject object = new JSONObject(prefValue);
             String type = object.getString("type");
@@ -24,20 +24,20 @@ public class AlbumCyclerFactory {
         return new DefaultCycler();
     }
 
-    private static AlbumCycler fromFolder(JSONObject object) {
+    private static Cycler fromFolder(JSONObject object) {
         return null;
     }
 
-    private static AlbumCycler fromTag(JSONObject object) {
+    private static Cycler fromTag(JSONObject object) {
         return null;
     }
 
-    private static AlbumCycler fromImage(JSONObject object) throws JSONException {
+    private static Cycler fromImage(JSONObject object) throws JSONException {
         JSONArray array = object.getJSONArray("images");
         if (array.length() == 0) {
             return new DefaultCycler(); //no images, use default
         }
-        ImageAlbumCycler cycler = new ImageAlbumCycler();
+        ImageCycler cycler = new ImageCycler();
         cycler.paths = new String[array.length()];
         for (int i = 0; i < array.length(); i++) {
             cycler.paths[i] = array.getString(i);

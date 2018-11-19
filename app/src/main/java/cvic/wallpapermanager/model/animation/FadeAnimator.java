@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.animation;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -8,7 +8,7 @@ import android.graphics.Paint;
  *     The incoming image grows in opacity
  *     until it is fully opaque.
  */
-public class FadeCycleAnimator extends CycleAnimator {
+public class FadeAnimator extends TransitionAnimator {
     private int alpha = 0;
     private Paint fromPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private Paint toPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
@@ -27,7 +27,7 @@ public class FadeCycleAnimator extends CycleAnimator {
         Canvas canvas = holder.lockCanvas();
         toPaint.setAlpha(alpha);
         //fromPaint.setAlpha(255 - alpha);
-        canvas.drawBitmap(from, 0, 0, fromPaint);   //draw from bitmap
+        canvas.drawBitmap(from, 0, 0, fromPaint);   //draw create bitmap
         canvas.drawBitmap(to, 0, 0, toPaint);       //draw to bitmap with opacity
         holder.unlockCanvasAndPost(canvas);
 

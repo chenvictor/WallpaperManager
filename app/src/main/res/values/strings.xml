@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WallpaperManager</string>
+    <string name="app_name">Wallpaper Manager</string>
     <string name="request_enabled">Live wallpaper is not currently enabled. Enable wallpaper?</string>
     <string name="confirm_enabled">Live wallpaper enabled!</string>
 
@@ -55,7 +55,7 @@
     <string name="summary_order">Order in which wallpapers are displayed</string>
     <string name="header_order">Wallpaper Order</string>
     <string name="header_general">General</string>
-    <string name="header_lock_blur">Blur Lock screen</string>
+    <string name="header_lock_blur">Blur lock screen</string>
     <string name="text_change">Change</string>
     <string name="text_fit">Fit</string>
     <string name="text_fill">Fill</string>
@@ -69,6 +69,7 @@
     <string name="key_transition">KEY_TRANSITION</string>
     <string name="key_random_order_enabled">KEY_RANDOM_ORDER_ENABLED</string>
     <string name="key_album_view_type">KEY_ALBUM_VIEW_TYPE</string>
+    <string name="key_wallpaper_lock_notification">KEY_WALLPAPER_LOCK_NOTIFICATION</string>
     <string name="key_wallpaper_lock_blur">KEY_WALLPAPER_LOCK_BLUR</string>
     <string name="key_wallpaper_lock_album">KEY_WALLPAPER_LOCK_ALBUM</string>
     <string name="key_wallpaper_lock_use_home">KEY_WALLPAPER_LOCK_USE_HOME</string>
@@ -89,11 +90,12 @@
     <string name="text_back">Back</string>
     <string name="text_new_folder">New Folder</string>
     <string name="wallpaper_description">temp_description</string>
-    <string name="key_wallpaper_home_album_count">KEY_HOME_ALBUM_COUNT</string>
-    <string name="key_wallpaper_lock_album_count">KEY_LOCK_ALBUM_COUNT</string>
     <string name="header_transition">Transition</string>
     <string name="summary_transition">How transitions should be animated</string>
     <string name="transition_fade">Fade</string>
     <string name="transition_page">Page</string>
     <string name="transition_flip">Flip</string>
+    <string name="header_lock_notification">Display wallpaper change notification</string>
+    <string name="notification_message">Change lock screen wallpaper</string>
+    <string name="message_request_enable">NOTE: Features will not work unless live wallpaper is set. Click here to set live wallpaper.</string>
 </resources>

@@ -16,11 +16,11 @@ import android.widget.Toast;
 
 import cvic.wallpapermanager.AlbumablePreviewActivity;
 import cvic.wallpapermanager.R;
-import cvic.wallpapermanager.model.Albumable;
-import cvic.wallpapermanager.model.Folder;
-import cvic.wallpapermanager.model.FolderManager;
-import cvic.wallpapermanager.model.Tag;
-import cvic.wallpapermanager.model.TagManager;
+import cvic.wallpapermanager.model.album.Albumable;
+import cvic.wallpapermanager.model.album.Folder;
+import cvic.wallpapermanager.model.album.FolderManager;
+import cvic.wallpapermanager.model.album.Tag;
+import cvic.wallpapermanager.model.album.TagManager;
 import cvic.wallpapermanager.utils.ImageCache;
 
 public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, Albumable.AlbumChangeListener {

@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.album;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class TagManager {
         tags = new ArrayList<>();
     }
 
-    protected void addTag(int idx, Tag tag) {
+    void addTag(int idx, Tag tag) {
         tags.add(idx, tag);
         for (int i = idx; i < tags.size(); i++) {
             tags.get(i).setId(i);
@@ -45,7 +45,7 @@ public class TagManager {
         return false;
     }
 
-    public void removeTag(Tag tag) {
+    void removeTag(Tag tag) {
         if (tags.remove(tag)) {
             for (int idx = 0; idx < tags.size(); idx++) {
                 tags.get(idx).setId(idx);

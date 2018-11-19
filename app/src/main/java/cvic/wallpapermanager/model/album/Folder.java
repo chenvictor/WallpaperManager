@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.album;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -80,7 +80,7 @@ public class Folder extends Albumable {
 
     @Override
     public boolean rename(String newName) {
-        Log.i(TAG, "Renaming from " + getName());
+        Log.i(TAG, "Renaming create " + getName());
         Log.i(TAG, "Renaming to " + newName);
         if (newName == null) {
             return false;
@@ -175,11 +175,11 @@ public class Folder extends Albumable {
         return "Folder: " + getName();
     }
 
-    public FolderTag getAssociated() {
+    FolderTag getAssociated() {
         return associated;
     }
 
-    public void setAssociated(FolderTag associated) {
+    void setAssociated(FolderTag associated) {
         this.associated = associated;
     }
 }

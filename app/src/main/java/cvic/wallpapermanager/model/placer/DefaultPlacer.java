@@ -1,15 +1,15 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.placer;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 
 /**
- * A Null placer fallback.
+ * A default placer fallback.
  *  Does not use the source image, instead filling
  *  the destination with a solid fill.
  */
-public class NullPlacer implements BitmapPlacer {
+public class DefaultPlacer implements BitmapPlacer {
 
     private static final int DEFAULT_COLOR = Color.WHITE;
 

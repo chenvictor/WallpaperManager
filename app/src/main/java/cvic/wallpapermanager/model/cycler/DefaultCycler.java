@@ -1,9 +1,9 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.cycler;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
 
-public class DefaultCycler extends AlbumCycler {
+public class DefaultCycler extends Cycler {
 
     private Bitmap bitmap;
 
@@ -17,8 +17,8 @@ public class DefaultCycler extends AlbumCycler {
     }
 
     @Override
-    public Bitmap cycle(boolean random) {
-        return bitmap;
+    public boolean cycle(boolean random) {
+        return false;
     }
 
     @Override
@@ -30,5 +30,10 @@ public class DefaultCycler extends AlbumCycler {
     @Override
     public void recycle() {
         bitmap.recycle();
+    }
+
+    @Override
+    public int getCount() {
+        return 1;
     }
 }

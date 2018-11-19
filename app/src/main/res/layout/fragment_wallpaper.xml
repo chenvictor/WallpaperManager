@@ -14,6 +14,52 @@
         android:orientation="vertical">
 
         <android.support.v7.widget.CardView
+            android:id="@+id/card_enable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <android.support.constraint.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:id="@+id/button_enable"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.6"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/message_enable"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/message_request_enable"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </android.support.constraint.ConstraintLayout>
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
             android:id="@+id/card_general"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -22,7 +68,7 @@
             android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" >
+            app:layout_constraintTop_toBottomOf="@+id/card_enable">
 
             <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
@@ -69,9 +115,9 @@
                     android:layout_marginEnd="8dp"
                     android:layout_marginBottom="8dp"
                     android:ems="10"
+                    android:imeActionLabel="@string/confirm"
                     android:importantForAutofill="no"
                     android:inputType="number"
-                    android:imeActionLabel="@string/confirm"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/interval_spinner"
                     app:layout_constraintTop_toBottomOf="@+id/header_interval"
@@ -269,17 +315,41 @@
                     app:layout_constraintTop_toBottomOf="@+id/card_lock_album" />
 
                 <TextView
-                    android:id="@+id/header_lock_blur"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/header_lock_notification"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/header_lock_notification"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@+id/lock_notification_checkbox"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/divider2" />
+
+                <CheckBox
+                    android:id="@+id/lock_notification_checkbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/header_lock_notification"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/header_lock_notification" />
+
+                <TextView
+                    android:id="@+id/header_lock_blur"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="@string/header_lock_blur"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/lock_blur_checkbox"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/divider2" />
+                    app:layout_constraintTop_toBottomOf="@+id/header_lock_notification" />
 
                 <CheckBox
                     android:id="@+id/lock_blur_checkbox"

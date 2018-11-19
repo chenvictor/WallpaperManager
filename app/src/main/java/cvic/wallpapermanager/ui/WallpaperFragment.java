@@ -1,6 +1,8 @@
 package cvic.wallpapermanager.ui;
 
 
+import android.app.WallpaperInfo;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,6 +19,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -34,6 +37,7 @@ import java.util.Locale;
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.SelectImagesActivity;
 import cvic.wallpapermanager.dialogs.ContextMenuDialog;
+import cvic.wallpapermanager.service.WPMService;
 import cvic.wallpapermanager.utils.JSONUtils;
 
 import static android.app.Activity.RESULT_OK;
@@ -44,12 +48,19 @@ import static android.app.Activity.RESULT_OK;
 public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, View.OnClickListener {
 
     private static final String TAG = "cvic.wpm.wp_frag";
+
+    public static final int RCODE_ENABLE_WALLPAPER = 1234;
+
     private static final int RCODE_SELECT_FOLDER = 100;
     private static final int RCODE_SELECT_TAG = 101;
     private static final int RCODE_SELECT_IMAGE = 102;
 
     private SharedPreferences mPrefs;
     private boolean editEnabled;
+
+    // Enable alert
+    private CardView mEnableCard;
+    private Button mEnableButton;
 
     // General screen views
     private CheckBox mIntervalEnabledCheckBox;
@@ -68,6 +79,7 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     private ImageView mLockAlbumPreview;
     private TextView mLockAlbumDesc;
     private CheckBox mLockBlurCheckBox;
+    private CheckBox mLockNotificationCheckBox;
 
     public WallpaperFragment() {
         // Required empty public constructor
@@ -86,6 +98,10 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     }
 
     private void findViews(View root) {
+
+        mEnableCard = root.findViewById(R.id.card_enable);
+        mEnableButton = mEnableCard.findViewById(R.id.button_enable);
+
         View general = root.findViewById(R.id.card_general);
         mIntervalEnabledCheckBox = general.findViewById(R.id.interval_checkbox);
         mIntervalValue = general.findViewById(R.id.interval_value);
@@ -103,9 +119,14 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         mLockAlbumPreview = mLockAlbum.findViewById(R.id.preview_image);
         mLockAlbumDesc = mLockAlbum.findViewById(R.id.preview_desc);
         mLockBlurCheckBox = lock.findViewById(R.id.lock_blur_checkbox);
+        mLockNotificationCheckBox = lock.findViewById(R.id.lock_notification_checkbox);
     }
 
     private void setListeners() {
+
+        // Alert listener
+        mEnableButton.setOnClickListener(this);
+
         // General listeners
         mIntervalEnabledCheckBox.setOnCheckedChangeListener(this);
         mIntervalValue.setOnEditorActionListener(this);
@@ -119,6 +140,7 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         mLockUseHomeSwitch.setOnCheckedChangeListener(this);
         mLockAlbum.setOnClickListener(this);
         mLockBlurCheckBox.setOnCheckedChangeListener(this);
+        mLockNotificationCheckBox.setOnCheckedChangeListener(this);
     }
 
     private void setPrefs() {
@@ -138,9 +160,22 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         mLockUseHomeSwitch.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_lock_use_home), true));
         //TODO image must also be changed
         mLockAlbumDesc.setText(getDesc(mPrefs.getString(getString(R.string.key_wallpaper_lock_album), getString(R.string.uninitialized))));
+        mLockNotificationCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_lock_notification), false));
         mLockBlurCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_lock_blur), false));
 
         editEnabled = true;     // unlock editing
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mEnableCard != null) {
+            if (wallpaperSet()) {
+                mEnableCard.setVisibility(View.GONE);
+            } else {
+                mEnableCard.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     @Override
@@ -153,6 +188,8 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
             homeDoubleTapChecked(b);
         } else if (mLockBlurCheckBox.equals(compoundButton)) {
             lockBlurChecked(b);
+        } else if (mLockNotificationCheckBox.equals(compoundButton)) {
+            lockNotificationChecked(b);
         }
     }
 
@@ -195,6 +232,17 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
             changeAlbum(0);
         } else if (mLockAlbum.equals(view)) {
             changeAlbum(1);
+        } else if (mEnableButton.equals(view)) {
+            sendIntent();
+        }
+    }
+
+    private void sendIntent() {
+        if (getContext() != null) {
+            Intent intent = new Intent();
+            intent.setAction(android.app.WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
+            intent.putExtra(android.app.WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, new ComponentName(getContext(), WPMService.class));
+            startActivityForResult(intent, RCODE_ENABLE_WALLPAPER);
         }
     }
 
@@ -283,6 +331,17 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     }
 
     /**
+     * Handle checking of lock notification checkbox,
+     *  updating the pref if necessary
+     * @param b         new checked state
+     */
+    private void lockNotificationChecked(boolean b) {
+        if (editEnabled) {
+            mPrefs.edit().putBoolean(getString(R.string.key_wallpaper_lock_notification), b).apply();
+        }
+    }
+
+    /**
      * Initiates an album change
      * @param id    0 for Home screen
      *              1 for Lock screen
@@ -362,17 +421,14 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     private void setAlbumImages(int id, String[] images) {
         TextView desc;
         String prefKey;
-        String countKey;
         switch (id) {
             case 0:
                 desc = mHomeAlbumDesc;
                 prefKey = getString(R.string.key_wallpaper_home_album);
-                countKey = getString(R.string.key_wallpaper_home_album_count);
                 break;
             case 1:
                 desc = mLockAlbumDesc;
                 prefKey = getString(R.string.key_wallpaper_lock_album);
-                countKey = getString(R.string.key_wallpaper_lock_album_count);
                 break;
             default:
                 return;
@@ -385,9 +441,17 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putString(prefKey, output);
-        editor.putInt(countKey, images.length);
         editor.apply();
         desc.setText(getDesc(output));
+    }
+
+    private boolean wallpaperSet() {
+        android.app.WallpaperManager wpm = android.app.WallpaperManager.getInstance(getContext());
+        WallpaperInfo info = wpm.getWallpaperInfo();
+        if (info == null) {
+            return false;
+        }
+        return (info.getComponent().getClassName().equals(WPMService.class.getName()));
     }
 
 }

@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.album;
 
 import java.io.File;
 import java.util.HashSet;

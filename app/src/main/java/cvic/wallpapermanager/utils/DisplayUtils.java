@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 public class DisplayUtils {
 
@@ -17,18 +16,16 @@ public class DisplayUtils {
     }
 
     public static Bitmap decodeBitmap (String path, int width, int height) {
-        Log.i(TAG, "Decoding bitmap, requested size: " + width + "x" + height);
+//        Log.i(TAG, "Decoding bitmap, requested size: " + width + "x" + height);
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(path, options);  //decode just the size of the image
-        Log.i(TAG, "Actual size: " + options.outWidth + "x" + options.outHeight);
+//        Log.i(TAG, "Actual size: " + options.outWidth + "x" + options.outHeight);
         options.inSampleSize = DisplayUtils.calculateInSampleSize(options, width, height);
         options.outWidth = width;
         options.outHeight = height;
         options.inJustDecodeBounds = false;
-        Bitmap temp = BitmapFactory.decodeFile(path, options);
-        Log.i(TAG, "Decoded size: " + options.outWidth + "x" + options.outHeight);
-        return temp;
+        return BitmapFactory.decodeFile(path, options);
     }
 
     // Sample Android code to calculate sample size

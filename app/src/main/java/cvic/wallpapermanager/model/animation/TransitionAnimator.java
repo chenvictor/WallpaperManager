@@ -1,10 +1,10 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.animation;
 
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.view.SurfaceHolder;
 
-public abstract class CycleAnimator  {
+public abstract class TransitionAnimator {
 
     private final Handler handler = new Handler();
     private final Runnable cycleRunnable = new Runnable() {
@@ -24,14 +24,22 @@ public abstract class CycleAnimator  {
 
     /**
      * Requests an animation
-     * @param holder    holder to fetch the canvas from
-     * @param from      bitmap to cycle from
+     * @param holder    holder to fetch the canvas create
+     * @param from      bitmap to cycle create
      * @param to        bitmap to cycle to
      * @param listener  listener to call when animation is done
      * @param fps       frames per second
      * @param duration  animation duration in milliseconds (ms)
+     *
+     * @throws IllegalArgumentException     if FPS or Duration are <= 0
      */
     public void requestCycle(SurfaceHolder holder, Bitmap from, Bitmap to, AnimatorListener listener, int fps, int duration) {
+        if (fps <= 0) {
+            throw new IllegalArgumentException("FPS must be > 0");
+        }
+        if (duration <= 0) {
+            throw new IllegalArgumentException("Duration must be > 0");
+        }
         this.holder = holder;
         this.from = from;
         this.to = to;
@@ -53,6 +61,12 @@ public abstract class CycleAnimator  {
         if (listener != null) {
             listener.runOnFinish();
             listener = null;    //set to null to prevent multiple calls to stopCycle notifying the listener
+        }
+    }
+
+    public void stopIfAnimating() {
+        if (isAnimating) {
+            stopCycle();
         }
     }
 

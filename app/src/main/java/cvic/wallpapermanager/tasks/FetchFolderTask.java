@@ -7,8 +7,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import cvic.wallpapermanager.model.Albumable;
-import cvic.wallpapermanager.model.Folder;
+import cvic.wallpapermanager.model.album.Albumable;
+import cvic.wallpapermanager.model.album.Folder;
 import cvic.wallpapermanager.utils.FilterUtils;
 
 public class FetchFolderTask extends AsyncTask<String, Void, List<Albumable>> {

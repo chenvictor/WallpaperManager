@@ -11,10 +11,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.ScriptIntrinsicBlur;
 import android.service.wallpaper.WallpaperService;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -22,27 +18,15 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import cvic.wallpapermanager.R;
-import cvic.wallpapermanager.model.AlbumCycler;
-import cvic.wallpapermanager.model.AlbumCyclerFactory;
-import cvic.wallpapermanager.model.BitmapPlacer;
-import cvic.wallpapermanager.model.CycleAnimator;
-import cvic.wallpapermanager.model.FadeCycleAnimator;
-import cvic.wallpapermanager.model.FillPlacer;
-import cvic.wallpapermanager.model.FitPlacer;
-import cvic.wallpapermanager.model.FlipCycleAnimator;
-import cvic.wallpapermanager.model.NullCycleAnimator;
-import cvic.wallpapermanager.model.NullPlacer;
-import cvic.wallpapermanager.model.PageCycleAnimator;
-import cvic.wallpapermanager.model.StretchPlacer;
+import cvic.wallpapermanager.model.animation.DefaultAnimator;
+import cvic.wallpapermanager.model.animation.FadeAnimator;
+import cvic.wallpapermanager.model.animation.FlipAnimator;
+import cvic.wallpapermanager.model.animation.PageAnimator;
+import cvic.wallpapermanager.model.animation.TransitionAnimator;
 
 public class WPMService extends WallpaperService {
 
-    private static final int DEFAULT_WIDTH = 500, DEFAULT_HEIGHT = 1000;
     private static final String TAG = "cvic.wpm.service";
-
-    private static final int POSITION_FIT = 0;
-    private static final int POSITION_FILL = 1;
-    private static final int POSITION_STRETCH = 2;
 
     private static final int TRANSITION_FADE = 0;
     private static final int TRANSITION_PAGE = 1;
@@ -53,98 +37,66 @@ public class WPMService extends WallpaperService {
         return new WPMEngine();
     }
 
-    private class WPMEngine extends WallpaperService.Engine implements SharedPreferences.OnSharedPreferenceChangeListener {
+    private class WPMEngine extends WallpaperService.Engine implements SharedPreferences.OnSharedPreferenceChangeListener, BitmapHandler.BitmapReceiver {
 
         private final Paint ANTI_ALIAS = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-
         private boolean dimensInit = false;
 
-        private BitmapPlacer bitmapPlacer;
-        private CycleAnimator cycleAnimator;
-        private AlbumCycler homeCycler;
-        private AlbumCycler lockCycler;
+        private BitmapHandler bitmapHandler;
 
-        private Bitmap lockBitmap;
-        private Bitmap homeBitmap;
+        private TransitionAnimator transitionAnimator;
 
-        private RenderScript script;
-        private ScriptIntrinsicBlur blurIntrinsic;
         private Context ctx = WPMService.this;
         private GestureDetector gestureDetector;
-        private PhoneUnlockedReceiver receiver;
-
-        private int width = DEFAULT_WIDTH;
-        private int height = DEFAULT_HEIGHT;
-
-        private boolean visible = true;
+        private PhoneUnlockedReceiver phoneUnlockedReceiver;
+        private LockNotificationReceiver lockNotificationReceiver;
+        private LockNotification lockNotification;
         /**
          * Preferences
          */
         private boolean doubleTap;
-        private boolean blurLock;
-        private boolean lockUseHome;
-        private boolean randomOrder;
-        private boolean changeOnInterval;
+        private boolean lockNotif;
 
-        private WPMEngine() {
-            gestureDetector = new GestureDetector(ctx, new GestureDetector.SimpleOnGestureListener() {
-                @Override
-                public boolean onDoubleTap(MotionEvent e) {
-                    doubleTapped();
-                    return true;
-                }
-            });
-            receiver = new PhoneUnlockedReceiver(this);
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WPMService.this);
-            doubleTap = doubleTapEnabled(prefs);
-            blurLock = blurLockEnabled(prefs);
-            lockUseHome = lockUseHomeEnabled(prefs);
-            loadRenderScript();
-            loadCyclers(prefs);
-            updatePositionType(prefs);
-            updateTransitionType(prefs);
-        }
 
-        private void loadRenderScript() {
-            script = RenderScript.create(WPMService.this);
-            blurIntrinsic = ScriptIntrinsicBlur.create(script, Element.U8_4(script));
-            blurIntrinsic.setRadius(25f);
-        }
-
-        private void loadCyclers(SharedPreferences prefs) {
-            if (homeCycler != null) {
-                homeCycler.recycle();
-            }
-            if (lockCycler != null) {
-                lockCycler.recycle();
-            }
-            homeCycler = AlbumCyclerFactory.from(prefs.getString(getString(R.string.key_wallpaper_home_album), getString(R.string.uninitialized)));
-            lockCycler = AlbumCyclerFactory.from(prefs.getString(getString(R.string.key_wallpaper_lock_album), getString(R.string.uninitialized)));
-        }
-
-        private void setDimens(int width, int height) {
-            homeCycler.setDimens(width, height);
-            lockCycler.setDimens(width, height);
-        }
+        private PreviewHandler previewHandler;
 
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-            prefs.registerOnSharedPreferenceChangeListener(this);
-            IntentFilter lockUnlock = new IntentFilter();
-            lockUnlock.addAction(Intent.ACTION_USER_PRESENT);
-            lockUnlock.addAction(Intent.ACTION_SCREEN_OFF);
-            registerReceiver(receiver, lockUnlock);
+            if (isPreview()) {
+                previewHandler = new PreviewHandler(ctx);
+            } else {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WPMService.this);
+                gestureDetector = new GestureDetector(ctx, new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onDoubleTap(MotionEvent e) {
+                        doubleTapped();
+                        return true;
+                    }
+                });
+                phoneUnlockedReceiver = new PhoneUnlockedReceiver(this);
+                lockNotificationReceiver = new LockNotificationReceiver(this);
+                doubleTap = doubleTapEnabled(prefs);
+                lockNotif = lockNotifEnabled(prefs);
+                updateTransitionType(prefs);
+                lockNotification = new LockNotification(ctx);
+                prefs.registerOnSharedPreferenceChangeListener(this);
+                IntentFilter lockUnlock = new IntentFilter();
+                lockUnlock.addAction(Intent.ACTION_USER_PRESENT);
+                lockUnlock.addAction(Intent.ACTION_SCREEN_OFF);
+                registerReceiver(phoneUnlockedReceiver, lockUnlock);
+                registerReceiver(lockNotificationReceiver, new IntentFilter(LockNotification.ACTION_CUSTOM));
+            }
         }
 
         @Override
         public void onVisibilityChanged(boolean visible) {
             super.onVisibilityChanged(visible);
-            this.visible = visible;
-            if (!visible) {
-                if (cycleAnimator.isAnimating()) {
-                    cycleAnimator.stopCycle();  //cancel any ongoing animation if wallpaper not visible
+            if (!isPreview()) {
+                if (!visible) {
+                    if (transitionAnimator.isAnimating()) {
+                        transitionAnimator.stopCycle();  //cancel any ongoing animation if wallpaper not visible
+                    }
                 }
             }
         }
@@ -152,143 +104,131 @@ public class WPMService extends WallpaperService {
         @Override
         public void onDestroy() {
             super.onDestroy();
-            PreferenceManager.getDefaultSharedPreferences(ctx).unregisterOnSharedPreferenceChangeListener(this);
-            unregisterReceiver(receiver);
+            if (isPreview()) {
+                previewHandler.destroy();
+            } else {
+                PreferenceManager.getDefaultSharedPreferences(ctx).unregisterOnSharedPreferenceChangeListener(this);
+                unregisterReceiver(phoneUnlockedReceiver);
+                unregisterReceiver(lockNotificationReceiver);
+                bitmapHandler.destroy();
+                lockNotification.destroy(ctx);
+            }
         }
 
         @Override
         public void onSurfaceCreated(SurfaceHolder holder) {
             super.onSurfaceCreated(holder);
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-            loadCyclers(prefs);
-            placeBitmaps();
-            requestDraw();
+            if (!isPreview()) {
+                bitmapHandler = new BitmapHandler(ctx, this);
+                requestDraw();
+            }
         }
 
         @Override
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
-            this.width = width;
-            this.height = height;
-            if (!dimensInit) {
-                Log.i(TAG, "Initializing dimens: " + width + "x" + height);
-                setDimens(width, height);
-                dimensInit = true;
+            if (isPreview()) {
+                previewHandler.draw(holder, width, height);
+            } else {
+                if (!dimensInit) {
+                    Log.i(TAG, "Initializing dimens: " + width + "x" + height);
+                    bitmapHandler.setDecodeDimens(width, height);
+                    dimensInit = true;
+                }
+                if (transitionAnimator.isAnimating()) {
+                    transitionAnimator.stopCycle();
+                }
+                bitmapHandler.notifyScreenSizeChanged(width, height);
+                requestDraw();
             }
-            if (cycleAnimator.isAnimating()) {
-                cycleAnimator.stopCycle();
-            }
-            placeBitmaps();
-            requestDraw();
         }
 
         @Override
         public void onTouchEvent(MotionEvent event) {
             super.onTouchEvent(event);
-            if (doubleTap) {
-                gestureDetector.onTouchEvent(event);
+            if (!isPreview()) {
+                if (doubleTap) {
+                    gestureDetector.onTouchEvent(event);
+                }
             }
         }
 
         private void notifyLocked() {
             Log.i(TAG, "phone locked!");
-            requestDraw();
+            if (transitionAnimator.isAnimating()) {
+                transitionAnimator.stopCycle();
+            }
+            bitmapHandler.notifyLocked();
+            if (lockNotif) {
+                lockNotification.show();
+            }
         }
 
         private void notifyUnlocked() {
             Log.i(TAG, "phone unlocked!");
-            requestDraw();
+            if (transitionAnimator.isAnimating()) {
+                transitionAnimator.stopCycle();
+            }
+            bitmapHandler.notifyUnlocked();
+            lockNotification.hide();
         }
 
         private void doubleTapped() {
             Log.i(TAG, "double tapped");
-            if (cycleAnimator.isAnimating()) {
-                return; //in middle of another cycle, wait
+            if (!transitionAnimator.isAnimating()) {
+                bitmapHandler.cycleHome();
             }
-            final Bitmap from = homeBitmap.copy(homeBitmap.getConfig(), true);
-            homeCycler.cycle(randomOrder);
-            homeBitmap.recycle();
-            homeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            bitmapPlacer.positionBitmap(homeBitmap, homeCycler.getBitmap());
-            final Bitmap to = homeBitmap.copy(from.getConfig(), true);
+        }
 
-            cycleAnimator.requestCycle(getSurfaceHolder(), from, to, new CycleAnimator.AnimatorListener() {
-                @Override
-                public void runOnFinish() {
-                    from.recycle();
-                    requestDraw();
-                }
-            }, 40, 500);
+        private void notifyLockNotifTapped() {
+            Log.i(TAG, "lock notif tapped");
+            if (!transitionAnimator.isAnimating()) {
+                bitmapHandler.cycleLock();
+            }
+        }
+
+        @Override
+        public void requestCycle(final Bitmap from, final Bitmap to) {
+            transitionAnimator.stopIfAnimating();
+            if (isVisible()) {
+                transitionAnimator.requestCycle(getSurfaceHolder(), from, to, new TransitionAnimator.AnimatorListener() {
+                    @Override
+                    public void runOnFinish() {
+                        from.recycle();
+                        drawImage(to);
+                    }
+                }, 40, 500);
+            } else {
+                from.recycle();
+                drawImage(to);
+            }
         }
 
         private boolean doubleTapEnabled(SharedPreferences prefs) {
             return prefs.getBoolean(getString(R.string.key_wallpaper_home_double_tap_enabled), false);
         }
 
-        private boolean blurLockEnabled(SharedPreferences prefs) {
-            return prefs.getBoolean(getString(R.string.key_wallpaper_lock_blur), false);
-        }
-
-        private boolean lockUseHomeEnabled(SharedPreferences prefs) {
-            return prefs.getBoolean(getString(R.string.key_wallpaper_lock_use_home), true);
-        }
-
-        private void updatePositionType(SharedPreferences prefs) {
-            switch (prefs.getInt(getString(R.string.key_position), POSITION_FILL)) {
-                case POSITION_FIT:
-                    bitmapPlacer = new FitPlacer();
-                    break;
-                case POSITION_FILL:
-                    bitmapPlacer = new FillPlacer();
-                    break;
-                case POSITION_STRETCH:
-                    bitmapPlacer = new StretchPlacer();
-                    break;
-                default:
-                    bitmapPlacer = new NullPlacer();
-            }
+        private boolean lockNotifEnabled(SharedPreferences prefs) {
+            return prefs.getBoolean(getString(R.string.key_wallpaper_lock_notification), false);
         }
 
         private void updateTransitionType(SharedPreferences prefs) {
             switch (prefs.getInt(getString(R.string.key_transition), TRANSITION_FADE)) {
                 case TRANSITION_FADE:
-                    cycleAnimator = new FadeCycleAnimator();
+                    transitionAnimator = new FadeAnimator();
                     break;
                 case TRANSITION_PAGE:
-                    cycleAnimator = new PageCycleAnimator();
+                    transitionAnimator = new PageAnimator();
                     break;
                 case TRANSITION_FLIP:
-                    cycleAnimator = new FlipCycleAnimator();
+                    transitionAnimator = new FlipAnimator();
                 default:
-                    cycleAnimator = new NullCycleAnimator();
+                    transitionAnimator = new DefaultAnimator();
             }
         }
 
-        private boolean getRandomOrderEnabled(SharedPreferences prefs) {
-            return prefs.getBoolean(getString(R.string.key_random_order_enabled), false);
-        }
-
-        private boolean getChangeOnIntervalEnabled(SharedPreferences prefs) {
-            return prefs.getBoolean(getString(R.string.key_wallpaper_interval_enabled), true);
-        }
-
-        private void requestDraw() {
-            Bitmap toDraw;
-            if (receiver.locked && !lockUseHome) {
-                Log.i(TAG, "Drawing lockscreen");
-                toDraw = lockBitmap;
-            } else {
-                Log.i(TAG, "Drawing homescreen");
-                toDraw = homeBitmap;
-            }
-            if (receiver.locked && blurLock) {
-                Bitmap blur = toDraw.copy(toDraw.getConfig(), true);
-                applyBlur(toDraw, blur);
-                drawImage(blur);
-                blur.recycle();
-            } else {
-                drawImage(toDraw);
-            }
+        public void requestDraw() {
+            drawImage(bitmapHandler.getBitmap());
         }
 
         private void drawImage(Bitmap bitmap) {
@@ -312,60 +252,22 @@ public class WPMService extends WallpaperService {
             }
         }
 
-        private void placeBitmaps() {
-            if (homeBitmap != null) {
-                homeBitmap.recycle();
-            }
-            if (lockBitmap != null) {
-                lockBitmap.recycle();
-            }
-            homeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            lockBitmap = homeBitmap.copy(Bitmap.Config.ARGB_8888, true);
-            bitmapPlacer.positionBitmap(homeBitmap, homeCycler.getBitmap());
-            if (lockUseHome) {
-                lockBitmap = homeBitmap.copy(Bitmap.Config.ARGB_8888, false);
-            } else {
-                bitmapPlacer.positionBitmap(lockBitmap, lockCycler.getBitmap());
-            }
-        }
-
-        /**
-         * Applies a gaussian blur using Renderscript
-         * @param original      bitmap to blur
-         * @param destination   bitmap to receive blurred image
-         */
-        private void applyBlur(Bitmap original, Bitmap destination) {
-            Allocation tmpIn = Allocation.createFromBitmap(script, original);
-            Allocation tmpOut = Allocation.createFromBitmap(script, destination);
-            blurIntrinsic.setInput(tmpIn);
-            blurIntrinsic.forEach(tmpOut);
-            tmpOut.copyTo(destination);
-        }
-
         @Override
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-            // Recalculate preferences
-            if (key.equals(getString(R.string.key_wallpaper_home_double_tap_enabled))) {
-                doubleTap = doubleTapEnabled(prefs);
-            } else if (key.equals(getString(R.string.key_wallpaper_lock_blur))) {
-                blurLock = blurLockEnabled(prefs);
-            } else if (key.equals(getString(R.string.key_wallpaper_lock_use_home))) {
-                lockUseHome = lockUseHomeEnabled(prefs);
-            } else if (key.equals(getString(R.string.key_wallpaper_lock_album)) ||
-                    key.equals(getString(R.string.key_wallpaper_home_album))) {
-                loadCyclers(prefs);
-                requestDraw();
-            } else if (key.equals(getString(R.string.key_position))) {
-                updatePositionType(prefs);
-                requestDraw();
-            } else if (key.equals(getString(R.string.key_random_order_enabled))) {
-                randomOrder = getRandomOrderEnabled(prefs);
-            } else if (key.equals(getString(R.string.key_wallpaper_interval_enabled))) {
-                changeOnInterval = getChangeOnIntervalEnabled(prefs);
-                //requestCycle();
-            } else if (key.equals(getString(R.string.key_transition))) {
-                cycleAnimator.stopCycle();
-                updateTransitionType(prefs);
+            if (!isPreview()) {
+                // Recalculate preferences
+
+                if (key.equals(getString(R.string.key_wallpaper_home_double_tap_enabled))) {
+                    doubleTap = doubleTapEnabled(prefs);
+                } else if (key.equals(getString(R.string.key_wallpaper_lock_notification))) {
+                    lockNotif = lockNotifEnabled(prefs);
+                } else if (key.equals(getString(R.string.key_transition))) {
+                    transitionAnimator.stopCycle();
+                    updateTransitionType(prefs);
+                } else {
+                    //Delegate to BitmapHandler
+                    bitmapHandler.notifyPreferenceChanged(prefs, key);
+                }
             }
         }
     }
@@ -409,6 +311,22 @@ public class WPMService extends WallpaperService {
             } else {
                 //Alternative for pre api 22
                 return keyguardManager.inKeyguardRestrictedInputMode();
+            }
+        }
+    }
+
+    private class LockNotificationReceiver extends BroadcastReceiver {
+
+        private WPMEngine engine;
+
+        public LockNotificationReceiver(WPMEngine engine) {
+            this.engine = engine;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.hasExtra(LockNotification.EXTRA)) {
+                engine.notifyLockNotifTapped();
             }
         }
     }

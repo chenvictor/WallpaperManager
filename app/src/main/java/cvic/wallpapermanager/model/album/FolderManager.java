@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.album;
 
 import android.support.annotation.NonNull;
 
@@ -50,7 +50,7 @@ public class FolderManager implements Iterable<Folder>{
         folders.clear();
     }
 
-    public void removeFolder(Folder folder) {
+    private void removeFolder(Folder folder) {
         if (folders.remove(folder)) {
             TagManager.getInstance().removeTag(folder.getAssociated());
             for (int idx = 0; idx < folders.size(); idx++) {

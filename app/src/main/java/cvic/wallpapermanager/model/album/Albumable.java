@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.album;
 
 import android.app.Activity;
 import android.content.Context;

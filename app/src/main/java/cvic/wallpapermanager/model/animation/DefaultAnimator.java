@@ -1,11 +1,11 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.animation;
 
 /**
- * A default 'null' animator fallback.
+ * A default animator fallback.
  *      Provides no animation, transitioning
  *     immediately to the second image.
  */
-public class NullCycleAnimator extends CycleAnimator {
+public class DefaultAnimator extends TransitionAnimator {
 
     @Override
     protected void init() {

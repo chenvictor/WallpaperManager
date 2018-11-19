@@ -10,10 +10,10 @@ import android.widget.Toast;
 
 import java.io.File;
 
-import cvic.wallpapermanager.model.Albumable;
-import cvic.wallpapermanager.model.Folder;
-import cvic.wallpapermanager.model.FolderManager;
-import cvic.wallpapermanager.model.TagManager;
+import cvic.wallpapermanager.model.album.Albumable;
+import cvic.wallpapermanager.model.album.Folder;
+import cvic.wallpapermanager.model.album.FolderManager;
+import cvic.wallpapermanager.model.album.TagManager;
 import cvic.wallpapermanager.tasks.AddImagesTask;
 import cvic.wallpapermanager.ui.MultiSelectImageAdapter;
 

@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.cycler;
 
 import android.graphics.Bitmap;
 
@@ -6,7 +6,7 @@ import java.util.Random;
 
 import cvic.wallpapermanager.utils.DisplayUtils;
 
-public class ImageAlbumCycler extends AlbumCycler {
+public class ImageCycler extends Cycler {
 
     private static final String TAG = "cvic.wpm.service.iac";
 
@@ -29,9 +29,9 @@ public class ImageAlbumCycler extends AlbumCycler {
     }
 
     @Override
-    public Bitmap cycle(boolean random) {
+    public boolean cycle(boolean random) {
         if (paths.length == 1) {
-            return current;
+            return false;
         }
         if (random) {
             index = getRandomNext();
@@ -41,12 +41,7 @@ public class ImageAlbumCycler extends AlbumCycler {
         assert (current != null);
         current.recycle();
         recalculate();
-        return getBitmap();
-    }
-
-    @Override
-    public boolean setDimens(int width, int height) {
-        return false;
+        return true;
     }
 
     @Override
@@ -66,7 +61,7 @@ public class ImageAlbumCycler extends AlbumCycler {
 
     /**
      * Returns a random new valid index,
-     * different from the current index
+     * different create the current index
      * @return  random new index [0, paths.length)
      */
     private int getRandomNext() {
@@ -76,5 +71,10 @@ public class ImageAlbumCycler extends AlbumCycler {
             return newIndex + 1;
         }
         return newIndex;
+    }
+
+    @Override
+    public int getCount() {
+        return paths.length;
     }
 }

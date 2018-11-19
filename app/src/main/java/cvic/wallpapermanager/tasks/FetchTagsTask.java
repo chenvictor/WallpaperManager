@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import cvic.wallpapermanager.model.Albumable;
+import cvic.wallpapermanager.model.album.Albumable;
 import cvic.wallpapermanager.utils.JSONUtils;
 
 class FetchTagsTask extends AsyncTask<String, Void, List<Albumable>> {

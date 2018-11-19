@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.placer;
 
 import android.graphics.Bitmap;
 

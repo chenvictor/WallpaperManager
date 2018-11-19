@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.album;
 
 import android.app.Activity;
 import android.content.Context;
@@ -16,7 +16,7 @@ public class Tag extends Albumable {
     Set<ImageFile> imageSet;
     List<ImageFile> imageList;
 
-    public Tag (String name) {
+    Tag(String name) {
         this.name = name;
         imageSet = new HashSet<>();
         imageList = new ArrayList<>();

@@ -1,8 +1,8 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.animation;
 
 import android.util.Log;
 
-public class FlipCycleAnimator extends CycleAnimator {
+public class FlipAnimator extends TransitionAnimator {
 
     //TODO
 

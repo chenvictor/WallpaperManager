@@ -1,8 +1,8 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.cycler;
 
 import android.graphics.Bitmap;
 
-public abstract class AlbumCycler {
+public abstract class Cycler {
 
     private static final int DEFAULT_WIDTH = 500, DEFAULT_HEIGHT = 1000;
 
@@ -10,7 +10,13 @@ public abstract class AlbumCycler {
     protected int height = DEFAULT_HEIGHT;
 
     public abstract Bitmap getBitmap();
-    public abstract Bitmap cycle(boolean random);
+
+    /**
+     * Cycles the cycler
+     * @param random    should it cycle randomly?
+     * @return      true if a new image was cycled to
+     */
+    public abstract boolean cycle(boolean random);
 
     /**
      * Sets the requested size when fetching bitmaps
@@ -39,5 +45,11 @@ public abstract class AlbumCycler {
      * in the cycler before deletion
      */
     public abstract void recycle();
+
+    /**
+     * Returns the number of images in the cycler
+     * @return  number of images
+     */
+    public abstract int getCount();
 
 }

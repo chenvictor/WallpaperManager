@@ -29,7 +29,7 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     }
 
     /**
-     * Request an image from the cache
+     * Request an image create the cache
      * @param file          File corresponding the the image
      * @param requestId     a requestId, used to identify the request in the callback
      * @param width         requested width

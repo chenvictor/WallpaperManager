@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model;
+package cvic.wallpapermanager.model.album;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,7 +9,7 @@ public class FolderTag extends Tag {
 
     private Folder folder;
 
-    public FolderTag(Folder folder) {
+    FolderTag(Folder folder) {
         super (folder.getName());
         this.folder = folder;
         imageSet = null;    //null since we do not need these
