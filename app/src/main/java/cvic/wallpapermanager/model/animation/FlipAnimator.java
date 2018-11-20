@@ -1,5 +1,6 @@
 package cvic.wallpapermanager.model.animation;
 
+import android.graphics.Canvas;
 import android.util.Log;
 
 public class FlipAnimator extends TransitionAnimator {
@@ -12,7 +13,7 @@ public class FlipAnimator extends TransitionAnimator {
     }
 
     @Override
-    protected boolean animate() {
+    protected boolean animate(Canvas canvas) {
         return false;
     }
 }

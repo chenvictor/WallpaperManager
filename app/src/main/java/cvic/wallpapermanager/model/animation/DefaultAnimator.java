@@ -1,5 +1,7 @@
 package cvic.wallpapermanager.model.animation;
 
+import android.graphics.Canvas;
+
 /**
  * A default animator fallback.
  *      Provides no animation, transitioning
@@ -13,7 +15,7 @@ public class DefaultAnimator extends TransitionAnimator {
     }
 
     @Override
-    protected boolean animate() {
+    protected boolean animate(Canvas canvas) {
         return false;
     }
 

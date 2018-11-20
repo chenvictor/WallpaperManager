@@ -227,12 +227,11 @@
                         android:text="@string/transition_page" />
 
                     <RadioButton
-                        android:id="@+id/btn_flip"
+                        android:id="@+id/btn_circle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:enabled="false"
-                        android:text="@string/transition_flip" />
+                        android:text="@string/transition_circle" />
 
                 </RadioGroup>
 

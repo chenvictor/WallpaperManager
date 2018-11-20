@@ -24,8 +24,8 @@
         android:defaultValue="true" />
 
     <Preference
-        android:key=""
-        />
+        android:key="@string/key_wallpaper_lock_notification"
+        android:defaultValue="false"/>
 
     <Preference
         android:key="@string/key_wallpaper_lock_blur"

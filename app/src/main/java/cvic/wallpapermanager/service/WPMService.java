@@ -18,9 +18,9 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.model.animation.CircleExpandAnimator;
 import cvic.wallpapermanager.model.animation.DefaultAnimator;
 import cvic.wallpapermanager.model.animation.FadeAnimator;
-import cvic.wallpapermanager.model.animation.FlipAnimator;
 import cvic.wallpapermanager.model.animation.PageAnimator;
 import cvic.wallpapermanager.model.animation.TransitionAnimator;
 
@@ -30,7 +30,7 @@ public class WPMService extends WallpaperService {
 
     private static final int TRANSITION_FADE = 0;
     private static final int TRANSITION_PAGE = 1;
-    private static final int TRANSITION_FLIP = 2;
+    private static final int TRANSITION_CIRCLE = 2;
 
     @Override
     public Engine onCreateEngine() {
@@ -56,6 +56,8 @@ public class WPMService extends WallpaperService {
          */
         private boolean doubleTap;
         private boolean lockNotif;
+        private float tapX;
+        private float tapY;
 
 
         private PreviewHandler previewHandler;
@@ -70,7 +72,7 @@ public class WPMService extends WallpaperService {
                 gestureDetector = new GestureDetector(ctx, new GestureDetector.SimpleOnGestureListener() {
                     @Override
                     public boolean onDoubleTap(MotionEvent e) {
-                        doubleTapped();
+                        doubleTapped(e.getX(), e.getY());
                         return true;
                     }
                 });
@@ -134,6 +136,8 @@ public class WPMService extends WallpaperService {
             } else {
                 if (!dimensInit) {
                     Log.i(TAG, "Initializing dimens: " + width + "x" + height);
+                    tapX = width / 2;
+                    tapY = width / 2;
                     bitmapHandler.setDecodeDimens(width, height);
                     dimensInit = true;
                 }
@@ -175,9 +179,11 @@ public class WPMService extends WallpaperService {
             lockNotification.hide();
         }
 
-        private void doubleTapped() {
+        private void doubleTapped(float mouseX, float mouseY) {
             Log.i(TAG, "double tapped");
             if (!transitionAnimator.isAnimating()) {
+                tapX = mouseX;
+                tapY = mouseY;
                 bitmapHandler.cycleHome();
             }
         }
@@ -197,11 +203,15 @@ public class WPMService extends WallpaperService {
                     @Override
                     public void runOnFinish() {
                         from.recycle();
+                        tapX = getSurfaceHolder().getSurfaceFrame().width() / 2;
+                        tapY = getSurfaceHolder().getSurfaceFrame().height() / 2;
                         drawImage(to);
                     }
-                }, 40, 500);
+                }, tapX, tapY);
             } else {
                 from.recycle();
+                tapX = getSurfaceHolder().getSurfaceFrame().width() / 2;
+                tapY = getSurfaceHolder().getSurfaceFrame().height() / 2;
                 drawImage(to);
             }
         }
@@ -222,8 +232,9 @@ public class WPMService extends WallpaperService {
                 case TRANSITION_PAGE:
                     transitionAnimator = new PageAnimator();
                     break;
-                case TRANSITION_FLIP:
-                    transitionAnimator = new FlipAnimator();
+                case TRANSITION_CIRCLE:
+                    transitionAnimator = new CircleExpandAnimator();
+                    break;
                 default:
                     transitionAnimator = new DefaultAnimator();
             }

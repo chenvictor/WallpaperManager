@@ -1,10 +1,18 @@
 package cvic.wallpapermanager.model.animation;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.os.Handler;
 import android.view.SurfaceHolder;
 
 public abstract class TransitionAnimator {
+
+    private final static int FPS = 40;
+    private final static int DURATION = 500;
+    private final static int FRAME_COUNT = DURATION / FPS;
+
+    final static Paint PAINT = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
 
     private final Handler handler = new Handler();
     private final Runnable cycleRunnable = new Runnable() {
@@ -15,10 +23,10 @@ public abstract class TransitionAnimator {
     };
 
     private boolean isAnimating = false;
-    private int fps;
-    private int duration;
     private AnimatorListener listener;
     SurfaceHolder holder;
+    float originX;
+    float originY;
     protected Bitmap from;
     protected Bitmap to;
 
@@ -28,24 +36,16 @@ public abstract class TransitionAnimator {
      * @param from      bitmap to cycle create
      * @param to        bitmap to cycle to
      * @param listener  listener to call when animation is done
-     * @param fps       frames per second
-     * @param duration  animation duration in milliseconds (ms)
-     *
-     * @throws IllegalArgumentException     if FPS or Duration are <= 0
+     * @param originX    x origin to animate from
+     * @param originY    y origin to animate from
      */
-    public void requestCycle(SurfaceHolder holder, Bitmap from, Bitmap to, AnimatorListener listener, int fps, int duration) {
-        if (fps <= 0) {
-            throw new IllegalArgumentException("FPS must be > 0");
-        }
-        if (duration <= 0) {
-            throw new IllegalArgumentException("Duration must be > 0");
-        }
+    public void requestCycle(SurfaceHolder holder, Bitmap from, Bitmap to, AnimatorListener listener, float originX, float originY) {
         this.holder = holder;
         this.from = from;
         this.to = to;
         this.listener = listener;
-        this.fps = fps;
-        this.duration = duration;
+        this.originX = originX;
+        this.originY = originY;
         isAnimating = true;
         init();
         cycle();
@@ -71,8 +71,11 @@ public abstract class TransitionAnimator {
     }
 
     private void cycle() {
-        if (animate() && isAnimating) {
-            handler.postDelayed(cycleRunnable, (1000 / fps));
+        Canvas canvas = holder.lockCanvas();
+        boolean temp = animate(canvas);
+        holder.unlockCanvasAndPost(canvas);
+        if (temp && isAnimating) {
+            handler.postDelayed(cycleRunnable, (1000 / FPS));
         } else {
             stopCycle();
         }
@@ -84,12 +87,10 @@ public abstract class TransitionAnimator {
     protected abstract void init();
 
     /**
-     * Runs one animation step, must call Listener.onUpdate
-     *  to notify listener
      * @return  true if the animation is continuing,
      *              false otherwise
      */
-    protected abstract boolean animate();
+    protected abstract boolean animate(Canvas canvas);
 
     public boolean isAnimating() {
         return isAnimating;
@@ -101,7 +102,7 @@ public abstract class TransitionAnimator {
      * @return  approx. number of frames
      */
     final int getFrameCount() {
-        return duration / fps;
+        return FRAME_COUNT;
     }
 
     public interface AnimatorListener {

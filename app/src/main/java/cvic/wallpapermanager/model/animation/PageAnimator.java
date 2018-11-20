@@ -1,7 +1,6 @@
 package cvic.wallpapermanager.model.animation;
 
 import android.graphics.Canvas;
-import android.graphics.Paint;
 
 /**
  * Provides a paging animation.
@@ -10,7 +9,6 @@ import android.graphics.Paint;
  */
 public class PageAnimator extends TransitionAnimator {
 
-    private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private int yPos;
     private int baseIncrement;
 
@@ -21,12 +19,10 @@ public class PageAnimator extends TransitionAnimator {
     }
 
     @Override
-    protected boolean animate() {
+    protected boolean animate(Canvas canvas) {
         //Draw the state
-        Canvas canvas = holder.lockCanvas();
-        canvas.drawBitmap(from, 0, yPos, paint);   //draw create bitmap with offset
-        canvas.drawBitmap(to, 0, yPos - to.getHeight(), paint);       //draw to bitmap with offset
-        holder.unlockCanvasAndPost(canvas);
+        canvas.drawBitmap(from, 0, yPos, PAINT);                            //draw create bitmap with offset
+        canvas.drawBitmap(to, 0, yPos - to.getHeight(), PAINT);       //draw to bitmap with offset
 
         //Increment yPos
         yPos += (baseIncrement + additionalIncrement());

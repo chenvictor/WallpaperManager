@@ -35,7 +35,7 @@
     <string-array name="settings_transition_descriptions">
         <item>A simple cross-fade transition</item>
         <item>New image will slide down from the top, pushing the old one off screen.</item>
-        <item>Horizontal card flip.</item>
+        <item>New image will fill a gradually expanding circle, originating from the tap location.</item>
     </string-array>
     <string name="placeholder_string">placeholder</string>
     <string name="confirm">OK</string>
@@ -94,7 +94,7 @@
     <string name="summary_transition">How transitions should be animated</string>
     <string name="transition_fade">Fade</string>
     <string name="transition_page">Page</string>
-    <string name="transition_flip">Flip</string>
+    <string name="transition_circle">Circle</string>
     <string name="header_lock_notification">Display wallpaper change notification</string>
     <string name="notification_message">Change lock screen wallpaper</string>
     <string name="message_request_enable">NOTE: Features will not work unless live wallpaper is set. Click here to set live wallpaper.</string>
