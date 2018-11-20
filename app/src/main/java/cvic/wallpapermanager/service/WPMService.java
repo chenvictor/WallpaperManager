@@ -97,6 +97,8 @@ public class WPMService extends WallpaperService {
                     if (transitionAnimator.isAnimating()) {
                         transitionAnimator.stopCycle();  //cancel any ongoing animation if wallpaper not visible
                     }
+                } else {
+                    phoneUnlockedReceiver.notifyVisible();
                 }
             }
         }
@@ -299,6 +301,14 @@ public class WPMService extends WallpaperService {
                         }
                     }
                 }
+            }
+        }
+
+        void notifyVisible() {
+            //Fallback for if the phone locks after idling and doesn't trigger properly
+            if (currentlyLocked() && !locked) {
+                locked = true;
+                engine.notifyLocked();
             }
         }
 
