@@ -1,47 +1,33 @@
 package cvic.wallpapermanager.model.cycler;
 
-import android.graphics.Bitmap;
-
-import java.util.Random;
-
 import cvic.wallpapermanager.utils.DisplayUtils;
 
 public class ImageCycler extends Cycler {
 
     private static final String TAG = "cvic.wpm.service.iac";
 
-    private Bitmap current;
-    private int index = -1;
-    String[] paths;
+    private int index;
+    private String[] paths;
 
-    @Override
-    public Bitmap getBitmap() {
-        if (current != null && current.isRecycled()) {
-            return null;
-        }
-        return current;
-    }
-
-    void init() {
-        assert (paths != null);
+    ImageCycler(String[] paths) {
+        this.paths = paths;
         index = 0;
         recalculate();
     }
 
     @Override
-    public boolean cycle(boolean random) {
+    public void doCycle(boolean random) {
         if (paths.length == 1) {
-            return false;
+            return;
         }
         if (random) {
             index = getRandomNext();
         } else {
-            index = getIterNext();
+            index = getNext();
         }
         assert (current != null);
         current.recycle();
         recalculate();
-        return true;
     }
 
     @Override
@@ -49,12 +35,7 @@ public class ImageCycler extends Cycler {
         current = DisplayUtils.decodeBitmap(paths[index], width, height);
     }
 
-    @Override
-    public void recycle() {
-        current.recycle();
-    }
-
-    private int getIterNext() {
+    private int getNext() {
         int next = index + 1;
         return next % paths.length;
     }
@@ -65,8 +46,8 @@ public class ImageCycler extends Cycler {
      * @return  random new index [0, paths.length)
      */
     private int getRandomNext() {
-        Random rand = new Random(System.currentTimeMillis());
-        int newIndex = rand.nextInt(paths.length - 1);
+        // -1 because we don't want to select the current image as the random one
+        int newIndex = getRandom(paths.length - 1);
         if (newIndex == index) {
             return newIndex + 1;
         }
@@ -74,7 +55,7 @@ public class ImageCycler extends Cycler {
     }
 
     @Override
-    public int getCount() {
-        return paths.length;
+    public boolean canCycle() {
+        return paths.length > 1;
     }
 }

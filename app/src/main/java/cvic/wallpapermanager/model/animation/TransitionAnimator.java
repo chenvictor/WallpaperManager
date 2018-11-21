@@ -8,7 +8,7 @@ import android.view.SurfaceHolder;
 
 public abstract class TransitionAnimator {
 
-    private final static int FPS = 40;
+    private final static int FPS = 48;
     private final static int DURATION = 500;
     private final static int FRAME_COUNT = DURATION / FPS;
 

@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model.album;
+package cvic.wallpapermanager.model.albumable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,5 +73,13 @@ public class TagManager {
 
     public int size() {
         return tags.size();
+    }
+
+    public String[] getTagNames() {
+        String[] names = new String[tags.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = tags.get(i).getName();
+        }
+        return names;
     }
 }

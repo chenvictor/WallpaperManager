@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model.album;
+package cvic.wallpapermanager.model.albumable;
 
 import android.app.Activity;
 import android.content.Context;
@@ -87,7 +87,7 @@ public abstract class Albumable implements TextInputDialog.ResultListener{
 
     public abstract String getName();
     public abstract File getImage(int idx);
-    public abstract int getCount();
+    public abstract int size();
     public abstract File getPreview();
 
     public abstract void refresh();

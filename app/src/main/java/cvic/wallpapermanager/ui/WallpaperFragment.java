@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -29,23 +30,26 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
-import java.util.Locale;
 
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.SelectImagesActivity;
 import cvic.wallpapermanager.dialogs.ContextMenuDialog;
+import cvic.wallpapermanager.dialogs.FolderSelectDialog;
+import cvic.wallpapermanager.dialogs.TagSelectDialog;
+import cvic.wallpapermanager.model.album.Album;
+import cvic.wallpapermanager.model.album.AlbumFactory;
+import cvic.wallpapermanager.model.album.ImageAlbum;
 import cvic.wallpapermanager.service.WPMService;
-import cvic.wallpapermanager.utils.JSONUtils;
+import cvic.wallpapermanager.utils.ImageCache;
 
 import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, View.OnClickListener {
+public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, View.OnClickListener, ImageCache.CacheListener {
 
     private static final String TAG = "cvic.wpm.wp_frag";
 
@@ -81,8 +85,15 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     private CheckBox mLockBlurCheckBox;
     private CheckBox mLockNotificationCheckBox;
 
+    // Albums
+    private Album homeAlbum;
+    private Album lockAlbum;
+
+    private ImageCache cache;
+
     public WallpaperFragment() {
         // Required empty public constructor
+        cache = new ImageCache(this, 2);
     }
 
     @Override
@@ -94,6 +105,10 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         findViews(root);
         setListeners();
         setPrefs();
+
+        fetchAlbums();
+        syncAlbums();
+
         return root;
     }
 
@@ -152,18 +167,36 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         mIntervalSpinner.setSelection(mPrefs.getInt(getString(R.string.key_wallpaper_interval_type), 0));
 
         // Home
-        //TODO image must also be changed
-        mHomeAlbumDesc.setText(getDesc(mPrefs.getString(getString(R.string.key_wallpaper_home_album), getString(R.string.uninitialized))));
         mHomeDoubleTapCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_home_double_tap_enabled), false));
 
         // Lock
         mLockUseHomeSwitch.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_lock_use_home), true));
-        //TODO image must also be changed
-        mLockAlbumDesc.setText(getDesc(mPrefs.getString(getString(R.string.key_wallpaper_lock_album), getString(R.string.uninitialized))));
         mLockNotificationCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_lock_notification), false));
         mLockBlurCheckBox.setChecked(mPrefs.getBoolean(getString(R.string.key_wallpaper_lock_blur), false));
 
         editEnabled = true;     // unlock editing
+    }
+
+    // Fetch the albums, and update the preview image and descriptions
+    private void fetchAlbums() {
+        homeAlbum = AlbumFactory.create(mPrefs.getString(getString(R.string.key_wallpaper_home_album), null));
+        lockAlbum = AlbumFactory.create(mPrefs.getString(getString(R.string.key_wallpaper_lock_album), null));
+    }
+
+    private void syncAlbums() {
+        mHomeAlbumDesc.setText(homeAlbum.getName());
+        mLockAlbumDesc.setText(lockAlbum.getName());
+        cache.flush();  //
+        if (homeAlbum.getPreview() != null) {
+            mHomeAlbumPreview.setImageBitmap(cache.requestImage(homeAlbum.getPreview(), 0, mHomeAlbumPreview.getMeasuredWidth(), mHomeAlbumPreview.getMeasuredHeight()));
+        } else {
+            mHomeAlbumPreview.setImageBitmap(null);
+        }
+        if (lockAlbum.getPreview() != null) {
+            mLockAlbumPreview.setImageBitmap(cache.requestImage(homeAlbum.getPreview(), 0, mLockAlbumPreview.getMeasuredWidth(), mLockAlbumPreview.getMeasuredHeight()));
+        } else {
+            mLockAlbumPreview.setImageBitmap(null);
+        }
     }
 
     @Override
@@ -347,18 +380,38 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
      *              1 for Lock screen
      */
     private void changeAlbum(int id) {
-        //TODO, open select album activity
         ContextMenuDialog dialog = new ContextMenuDialog(getContext(), "Album Type");
         dialog.addButton("Folder", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.i(TAG, "Folder selected");
+                new FolderSelectDialog(getContext(), new FolderSelectDialog.ResultListener() {
+                    @Override
+                    public void onSelected(String[] folders) {
+                        Log.i(TAG, "Folders selected! TODO");
+                        for (String f : folders) {
+                            Log.i(TAG, "folder: " + f);
+                        }
+                    }
+                }).show();
             }
         });
         dialog.addButton("Tag", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.i(TAG, "Tag selected");
+                new TagSelectDialog(getContext(), new TagSelectDialog.ResultListener() {
+                    @Override
+                    public void onSelected(String[] include, String[] exclude) {
+                        Log.i(TAG, "Tags selected! TODO");
+                        for (String s : include) {
+                            Log.i(TAG, "+" + s);
+                        }
+                        for (String s : exclude) {
+                            Log.i(TAG, "-" + 1);
+                        }
+                    }
+                }).show();
             }
         });
         dialog.addButton("Image", new View.OnClickListener() {
@@ -378,30 +431,6 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         currentlySelecting = id;
     }
 
-    private String getDesc(String preferenceString) {
-        if (preferenceString.equals(getString(R.string.uninitialized))) {
-            return preferenceString;
-        }
-        try {
-            JSONObject data = new JSONObject(preferenceString);
-            String appendage = "";
-            String type = data.getString("type");
-            switch (type) {
-                case "FOLDER":
-                    break;
-                case "TAG":
-                    break;
-                case "IMAGE":
-                    appendage = String.format(Locale.getDefault(), "(%d)", data.getJSONArray("images").length());
-                    break;
-            }
-            return type + " " + appendage;
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return getString(R.string.uninitialized);
-    }
-
     private int currentlySelecting = -1;
 
     @Override
@@ -418,31 +447,37 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         }
     }
 
+    private void setAlbumFolders(int id, String[] folders) {
+
+    }
+
     private void setAlbumImages(int id, String[] images) {
-        TextView desc;
         String prefKey;
+        Album album;
         switch (id) {
             case 0:
-                desc = mHomeAlbumDesc;
                 prefKey = getString(R.string.key_wallpaper_home_album);
+                homeAlbum = new ImageAlbum(images);
+                album = homeAlbum;
                 break;
             case 1:
-                desc = mLockAlbumDesc;
                 prefKey = getString(R.string.key_wallpaper_lock_album);
+                lockAlbum = new ImageAlbum(images);
+                album = lockAlbum;
                 break;
             default:
                 return;
         }
-        String output = JSONUtils.jsonifyImages(images);
-        if (output == null) {
-            output = getString(R.string.uninitialized);
+        syncAlbums();
+        SharedPreferences.Editor editor = mPrefs.edit();
+        try {
+            editor.putString(prefKey, album.jsonify().toString(0));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            editor.putString(prefKey, "null");
+        } finally {
+            editor.apply();
         }
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        SharedPreferences.Editor editor = prefs.edit();
-
-        editor.putString(prefKey, output);
-        editor.apply();
-        desc.setText(getDesc(output));
     }
 
     private boolean wallpaperSet() {
@@ -454,4 +489,17 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         return (info.getComponent().getClassName().equals(WPMService.class.getName()));
     }
 
+    @Override
+    public void onBitmapAvailable(int requestId, Bitmap bitmap) {
+        switch (requestId) {
+            case 0:
+                //home
+                mHomeAlbumPreview.setImageBitmap(bitmap);
+                break;
+            case 1:
+                //lock
+                mLockAlbumPreview.setImageBitmap(bitmap);
+                break;
+        }
+    }
 }

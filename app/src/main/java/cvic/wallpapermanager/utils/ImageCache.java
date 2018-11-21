@@ -14,6 +14,7 @@ import cvic.wallpapermanager.tasks.BitmapWorkerTask;
 public class ImageCache implements BitmapWorkerTask.TaskListener{
 
     private static final String TAG = "cvic.wpm.img_cache";
+    private static final int DEFAULT_CACHE_SIZE = 16;
 
     private Bitmap mPlaceholder;
     private LruCache<Integer, Bitmap> cache;
@@ -21,11 +22,16 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     private Map<Integer, BitmapWorkerTask> requests;
 
     @SuppressLint("UseSparseArrays")
-    public ImageCache(CacheListener listener) {
+    public ImageCache(CacheListener listener, int cacheSize) {
         mPlaceholder = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
         mListener = listener;
-        cache = new LruCache<>(16);
+        cache = new LruCache<>(cacheSize);
         requests = new HashMap<>();
+    }
+
+    @SuppressLint("UseSparseArrays")
+    public ImageCache(CacheListener listener) {
+        this(listener, DEFAULT_CACHE_SIZE);
     }
 
     /**
@@ -53,6 +59,14 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
             task.execute();
             return mPlaceholder;
         }
+    }
+
+    public boolean isCached(Bitmap bitmap) {
+        return cache.snapshot().values().contains(bitmap);
+    }
+
+    public boolean isCached(Integer key) {
+        return cache.snapshot().keySet().contains(key);
     }
 
     /**

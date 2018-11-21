@@ -2,6 +2,7 @@ package cvic.wallpapermanager.ui;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.NonNull;
 import android.support.constraint.Group;
 import android.support.v7.widget.RecyclerView;
@@ -81,6 +82,12 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         super.onViewRecycled(holder);
         Log.i(TAG, "Recycling: " + holder.getAdapterPosition());
         cache.cancelRequest(holder.getAdapterPosition());
+        if (!cache.isCached(holder.getAdapterPosition())) {
+            try {
+                Bitmap bitmap = ((BitmapDrawable) holder.image.getDrawable()).getBitmap();
+                bitmap.recycle();
+            } catch (ClassCastException ignored) {}
+        }
     }
 
     @Override
@@ -90,7 +97,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         Group overlay = viewHolder.overlay;
         File file = getFile(i);
         if (file.isDirectory()) {
-            image.setImageResource(R.drawable.folder_icon);
+            image.setImageResource(R.drawable.folder_outline);
             int count = file.listFiles(FilterUtils.get(FilterUtils.IMAGE)).length;
             label.setText(ctx.getResources().getQuantityString(R.plurals.folder_title_plural, count, file.getName(), count));
             overlay.setVisibility(View.INVISIBLE);

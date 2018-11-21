@@ -6,8 +6,8 @@ import android.graphics.Rect;
 
 public class CircleExpandAnimator extends TransitionAnimator {
 
-    private double radius;
-    private double maxRadius;
+    private float radius;
+    private float maxRadius;
 
     @Override
     protected void init() {
@@ -26,13 +26,13 @@ public class CircleExpandAnimator extends TransitionAnimator {
         }
         float dx = calcDistX - originX;
         float dy = calcDistY - originY;
-        maxRadius = Math.sqrt(dx*dx + dy*dy);
+        maxRadius = (float) Math.sqrt(dx*dx + dy*dy);
     }
 
     @Override
     protected boolean animate(Canvas canvas) {
         Path path = new Path();
-        path.addCircle(originX, originY, (float) radius, Path.Direction.CW);
+        path.addCircle(originX, originY, radius, Path.Direction.CW);
         //Draw the state
         canvas.drawBitmap(from, 0,0, PAINT);
         canvas.save();

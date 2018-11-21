@@ -13,9 +13,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import cvic.wallpapermanager.R;
-import cvic.wallpapermanager.model.album.Albumable;
-import cvic.wallpapermanager.model.album.FolderManager;
-import cvic.wallpapermanager.model.album.TagManager;
+import cvic.wallpapermanager.model.albumable.Albumable;
+import cvic.wallpapermanager.model.albumable.FolderManager;
+import cvic.wallpapermanager.model.albumable.TagManager;
 
 public class AlbumSelectDialog {
 

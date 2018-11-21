@@ -38,7 +38,7 @@ public class DirectorySelectDialog {
         mListener = listener;
         mActivity = activity;
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        @SuppressLint("InflateParams") View view = LayoutInflater.from(activity).inflate(R.layout.dialog_folderpick_dialog, null, false);
+        @SuppressLint("InflateParams") View view = LayoutInflater.from(activity).inflate(R.layout.dialog_folderpick, null, false);
         mPathTextView = view.findViewById(R.id.current_path);
         mRecycler = view.findViewById(R.id.recycler);
         mRecycler.setLayoutManager(new LinearLayoutManager(activity));

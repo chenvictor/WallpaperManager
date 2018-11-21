@@ -10,10 +10,10 @@ import android.widget.Toast;
 
 import java.io.File;
 
-import cvic.wallpapermanager.model.album.Albumable;
-import cvic.wallpapermanager.model.album.Folder;
-import cvic.wallpapermanager.model.album.FolderManager;
-import cvic.wallpapermanager.model.album.TagManager;
+import cvic.wallpapermanager.model.albumable.Albumable;
+import cvic.wallpapermanager.model.albumable.Folder;
+import cvic.wallpapermanager.model.albumable.FolderManager;
+import cvic.wallpapermanager.model.albumable.TagManager;
 import cvic.wallpapermanager.tasks.AddImagesTask;
 import cvic.wallpapermanager.ui.MultiSelectImageAdapter;
 
@@ -43,7 +43,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
     }
 
     protected String getDefaultTitle() {
-        return getResources().getQuantityString(R.plurals.folder_title_plural, album.getCount(), album.getName(), album.getCount());
+        return getResources().getQuantityString(R.plurals.folder_title_plural, album.size(), album.getName(), album.size());
     }
 
     @Override
@@ -161,7 +161,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
             if (mAlbum == null) {
                 return 0;
             }
-            return mAlbum.getCount();
+            return mAlbum.size();
         }
 
     }

@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model.album;
+package cvic.wallpapermanager.model.albumable;
 
 import android.app.Activity;
 import android.content.Context;
@@ -33,13 +33,13 @@ public class Tag extends Albumable {
     }
 
     @Override
-    public int getCount() {
+    public int size() {
         return imageSet.size();
     }
 
     @Override
     public File getPreview() {
-        if (getCount() == 0) {
+        if (size() == 0) {
             return null;
         }
         return imageList.get(0).getFile();

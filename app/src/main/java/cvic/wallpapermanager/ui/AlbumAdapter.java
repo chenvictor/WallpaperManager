@@ -16,11 +16,11 @@ import android.widget.Toast;
 
 import cvic.wallpapermanager.AlbumablePreviewActivity;
 import cvic.wallpapermanager.R;
-import cvic.wallpapermanager.model.album.Albumable;
-import cvic.wallpapermanager.model.album.Folder;
-import cvic.wallpapermanager.model.album.FolderManager;
-import cvic.wallpapermanager.model.album.Tag;
-import cvic.wallpapermanager.model.album.TagManager;
+import cvic.wallpapermanager.model.albumable.Albumable;
+import cvic.wallpapermanager.model.albumable.Folder;
+import cvic.wallpapermanager.model.albumable.FolderManager;
+import cvic.wallpapermanager.model.albumable.Tag;
+import cvic.wallpapermanager.model.albumable.TagManager;
 import cvic.wallpapermanager.utils.ImageCache;
 
 public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, Albumable.AlbumChangeListener {
@@ -97,7 +97,7 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
         View view = viewHolder.itemView;
         ImageView preview = view.findViewById(R.id.grid_albumable_image);
         TextView label = view.findViewById(R.id.grid_albumable_label);
-        label.setText(mCtx.getResources().getQuantityString(R.plurals.folder_title_plural, item.getCount(), item.getName(), item.getCount()));
+        label.setText(mCtx.getResources().getQuantityString(R.plurals.folder_title_plural, item.size(), item.getName(), item.size()));
         preview.setImageBitmap(mCache.requestImage(item.getPreview(), i, size, size));
     }
 

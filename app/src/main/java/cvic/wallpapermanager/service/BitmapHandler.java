@@ -327,7 +327,7 @@ public class BitmapHandler implements IntervalHandler.IntervalListener {
         if (homeCycler != null) {
             homeCycler.recycle();
         }
-        homeCycler = CyclerFactory.create(prefValue);
+        homeCycler = CyclerFactory.create(ctx, prefValue);
         homeCycler.setDimens(decodeWidth, decodeHeight);
         if (lockUseHome) {
             lockCycler = homeCycler;
@@ -339,7 +339,7 @@ public class BitmapHandler implements IntervalHandler.IntervalListener {
         if (lockCycler != null) {
             lockCycler.recycle();
         }
-        lockCycler = CyclerFactory.create(prefValue);
+        lockCycler = CyclerFactory.create(ctx, prefValue);
         lockCycler.setDimens(decodeWidth, decodeHeight);
         intervalHandler.notifyLockChanged(lockCanCycle());
     }
@@ -380,11 +380,11 @@ public class BitmapHandler implements IntervalHandler.IntervalListener {
     }
 
     private boolean homeCanCycle() {
-        return homeCycler.getCount() > 1;
+        return homeCycler.canCycle();
     }
 
     private boolean lockCanCycle() {
-        return lockCycler.getCount() > 1;
+        return lockCycler.canCycle();
     }
 
     @Override

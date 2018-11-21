@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model.album;
+package cvic.wallpapermanager.model.albumable;
 
 import android.support.annotation.NonNull;
 
@@ -26,14 +26,14 @@ public class FolderManager implements Iterable<Folder>{
         folders = new ArrayList<>();
     }
 
-    public void setFolders(List<Albumable> folders) {
+    public synchronized void setFolders(List<Albumable> folders) {
         removeAll();
         for (Albumable folder : folders) {
             addFolder((Folder) folder);
         }
     }
 
-    public void addFolder(Folder folder) {
+    public synchronized void addFolder(Folder folder) {
         if (folders.add(folder)) {
             folder.setId(folders.size() - 1);
             FolderTag tag = new FolderTag(folder);
@@ -42,7 +42,7 @@ public class FolderManager implements Iterable<Folder>{
         }
     }
 
-    private void removeAll() {
+    private synchronized void removeAll() {
         for (Folder folder : folders) {
             TagManager.getInstance().removeTag(folder.getAssociated());
             folder.setId(-1);
@@ -50,7 +50,7 @@ public class FolderManager implements Iterable<Folder>{
         folders.clear();
     }
 
-    private void removeFolder(Folder folder) {
+    private synchronized void removeFolder(Folder folder) {
         if (folders.remove(folder)) {
             TagManager.getInstance().removeTag(folder.getAssociated());
             for (int idx = 0; idx < folders.size(); idx++) {
@@ -60,23 +60,40 @@ public class FolderManager implements Iterable<Folder>{
         }
     }
 
-    public void removeFolder(int id) {
+    public synchronized void removeFolder(int id) {
         if (id < folders.size()) {
             removeFolder(folders.get(id));
         }
     }
 
-    public Folder getFolder(int id) {
+    public synchronized Folder getFolder(int id) {
         return folders.get(id);
     }
 
-    public int size() {
+    public synchronized Folder getFolder(String name) {
+        for (Folder folder : folders) {
+            if (folder.getName().equals(name)) {
+                return folder;
+            }
+        }
+        return null;
+    }
+
+    public synchronized int size() {
         return folders.size();
+    }
+
+    public synchronized String[] getFolderNames() {
+        String[] names = new String[folders.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = folders.get(i).getName();
+        }
+        return names;
     }
 
     @NonNull
     @Override
-    public Iterator<Folder> iterator() {
+    public synchronized Iterator<Folder> iterator() {
         return folders.iterator();
     }
 }

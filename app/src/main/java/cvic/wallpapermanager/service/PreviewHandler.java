@@ -33,6 +33,7 @@ class PreviewHandler {
     private Bitmap lock;
     private BitmapPlacer placer;
 
+    @SuppressWarnings("ConstantConditions")
     PreviewHandler(Context ctx) {
         TEXT.setColor(Color.BLUE);
         TEXT.setTextSize(60);
@@ -40,7 +41,7 @@ class PreviewHandler {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         setPlacer(prefs.getInt(ctx.getString(R.string.key_position), 0));
-        Cycler temp = CyclerFactory.create(prefs.getString(ctx.getString(R.string.key_wallpaper_home_album), null));
+        Cycler temp = CyclerFactory.create(ctx, prefs.getString(ctx.getString(R.string.key_wallpaper_home_album), null));
         home = temp.getBitmap().copy(temp.getBitmap().getConfig(), true);
         temp.recycle();
         boolean lockUseHome = prefs.getBoolean(ctx.getString(R.string.key_wallpaper_lock_use_home), false);
@@ -48,7 +49,7 @@ class PreviewHandler {
         if (lockUseHome) {
             lock = home.copy(home.getConfig(), true);
         } else {
-            temp = CyclerFactory.create(prefs.getString(ctx.getString(R.string.key_wallpaper_lock_album), null));
+            temp = CyclerFactory.create(ctx, prefs.getString(ctx.getString(R.string.key_wallpaper_lock_album), null));
             lock = temp.getBitmap().copy(temp.getBitmap().getConfig(), true);
             temp.recycle();
         }

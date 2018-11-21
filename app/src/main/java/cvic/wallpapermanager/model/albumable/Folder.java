@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model.album;
+package cvic.wallpapermanager.model.albumable;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -22,19 +22,13 @@ public class Folder extends Albumable {
     public static final int PICK_IMAGE = 123;
 
     private File mFile;
-    private boolean root;
     private File[] images;
 
     private FolderTag associated;
 
-    public Folder(File file, boolean root) {
+    public Folder(File file) {
         mFile = file;
         refresh();
-        this.root = root;
-    }
-
-    public Folder (File file) {
-        this (file, false);
     }
 
     @Override
@@ -44,9 +38,6 @@ public class Folder extends Albumable {
 
     @Override
     public String getName() {
-        if (root) {
-            return "default";
-        }
         return mFile.getName();
     }
 
@@ -56,7 +47,7 @@ public class Folder extends Albumable {
     }
 
     @Override
-    public int getCount() {
+    public int size() {
         return images.length;
     }
 
@@ -66,7 +57,7 @@ public class Folder extends Albumable {
 
     @Override
     public File getPreview() {
-        if (getCount() == 0) {
+        if (size() == 0) {
             return null;
         }
         return images[0];
@@ -97,7 +88,7 @@ public class Folder extends Albumable {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void delete(final Context ctx) {
-        if (getCount() == 0) {
+        if (size() == 0) {
             mFile.delete();
             mListener.onAlbumDelete(listenerIdx);
         } else {
@@ -155,7 +146,7 @@ public class Folder extends Albumable {
     }
 
     private File getDestination(Folder target, File file) {
-        int numFiles = target.getCount();  //lists the number of files already in the folder
+        int numFiles = target.size();  //lists the number of files already in the folder
         File ret = new File(target.mFile, file.getName());
         if (!ret.exists()) {
             return ret;

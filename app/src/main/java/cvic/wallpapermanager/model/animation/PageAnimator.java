@@ -9,13 +9,13 @@ import android.graphics.Canvas;
  */
 public class PageAnimator extends TransitionAnimator {
 
-    private int yPos;
-    private int baseIncrement;
+    private float yPos;
+    private float baseIncrement;
 
     @Override
     protected void init() {
         yPos = 0;
-        baseIncrement = from.getHeight() / getFrameCount() / 16;
+        baseIncrement = ((float) from.getHeight()) / (getFrameCount() * 16);
     }
 
     @Override

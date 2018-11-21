@@ -1,4 +1,4 @@
-package cvic.wallpapermanager.model.album;
+package cvic.wallpapermanager.model.albumable;
 
 import android.app.Activity;
 import android.content.Context;
@@ -27,8 +27,8 @@ public class FolderTag extends Tag {
     }
 
     @Override
-    public int getCount() {
-        return folder.getCount();
+    public int size() {
+        return folder.size();
     }
 
     @Override

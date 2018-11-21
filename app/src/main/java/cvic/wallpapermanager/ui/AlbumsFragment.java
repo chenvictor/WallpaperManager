@@ -23,10 +23,10 @@ import java.util.List;
 
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.dialogs.TextInputDialog;
-import cvic.wallpapermanager.model.album.Albumable;
-import cvic.wallpapermanager.model.album.Folder;
-import cvic.wallpapermanager.model.album.FolderManager;
-import cvic.wallpapermanager.model.album.TagManager;
+import cvic.wallpapermanager.model.albumable.Albumable;
+import cvic.wallpapermanager.model.albumable.Folder;
+import cvic.wallpapermanager.model.albumable.FolderManager;
+import cvic.wallpapermanager.model.albumable.TagManager;
 import cvic.wallpapermanager.tasks.FetchFolderTask;
 import cvic.wallpapermanager.utils.DisplayUtils;
 
