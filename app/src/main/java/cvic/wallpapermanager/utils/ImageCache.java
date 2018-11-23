@@ -50,6 +50,7 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
             cache.remove(requestId);
             return mPlaceholder;
         }
+        Log.i(TAG, "Image: " + file.toString() + " requested.");
         Bitmap cached = cache.get(requestId);
         if (cached != null) {
             return cached;

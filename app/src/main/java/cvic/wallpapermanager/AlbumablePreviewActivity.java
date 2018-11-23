@@ -109,7 +109,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
     @Override
     public void onSingleImageClick(File file) {
         Intent intent = new Intent(this, FolderIVA.class);
-        intent.putExtra(ImageViewActivity.IMAGE_PATH, file.getAbsolutePath());
+        intent.putExtra(SingleImageActivity.IMAGE_PATH, file.getAbsolutePath());
         startActivity(intent);
     }
 

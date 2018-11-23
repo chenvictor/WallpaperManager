@@ -273,9 +273,6 @@ public class BitmapHandler implements IntervalHandler.IntervalListener {
         this.lockUseHome = lockUseHome;
         if (lockUseHome) {
             //Free the lock cycler, simply reference the home cycler to retrieve images
-            if (lockCycler != null && lockCycler != homeCycler) {
-                lockCycler.recycle();
-            }
             lockCycler = homeCycler;
         } else {
             //Otherwise, create independent lock cycler

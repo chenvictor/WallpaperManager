@@ -21,7 +21,7 @@ import java.io.File;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public abstract class ImageViewActivity extends AppCompatActivity {
+public abstract class SingleImageActivity extends AppCompatActivity {
 
     public static final String IMAGE_PATH = "cvic.wpm.img_path";
 

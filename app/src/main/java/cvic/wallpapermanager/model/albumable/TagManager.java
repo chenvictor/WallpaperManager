@@ -71,6 +71,15 @@ public class TagManager {
         return tags.get(id);
     }
 
+    public Tag getTag(String name) {
+        for (Tag tag : tags) {
+            if (tag.getName().equals(name)) {
+                return tag;
+            }
+        }
+        return null;
+    }
+
     public int size() {
         return tags.size();
     }

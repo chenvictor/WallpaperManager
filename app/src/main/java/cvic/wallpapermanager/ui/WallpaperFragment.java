@@ -31,16 +31,16 @@ import android.widget.TextView;
 
 import org.json.JSONException;
 
-import java.io.File;
-
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.SelectImagesActivity;
-import cvic.wallpapermanager.dialogs.ContextMenuDialog;
+import cvic.wallpapermanager.dialogs.AlbumEditDialog;
 import cvic.wallpapermanager.dialogs.FolderSelectDialog;
 import cvic.wallpapermanager.dialogs.TagSelectDialog;
 import cvic.wallpapermanager.model.album.Album;
 import cvic.wallpapermanager.model.album.AlbumFactory;
+import cvic.wallpapermanager.model.album.FolderAlbum;
 import cvic.wallpapermanager.model.album.ImageAlbum;
+import cvic.wallpapermanager.model.album.TagAlbum;
 import cvic.wallpapermanager.service.WPMService;
 import cvic.wallpapermanager.utils.ImageCache;
 
@@ -49,15 +49,13 @@ import static android.app.Activity.RESULT_OK;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, View.OnClickListener, ImageCache.CacheListener {
+public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, View.OnClickListener, ImageCache.CacheListener, FolderSelectDialog.ResultListener, TagSelectDialog.ResultListener {
 
     private static final String TAG = "cvic.wpm.wp_frag";
 
     public static final int RCODE_ENABLE_WALLPAPER = 1234;
 
-    private static final int RCODE_SELECT_FOLDER = 100;
-    private static final int RCODE_SELECT_TAG = 101;
-    private static final int RCODE_SELECT_IMAGE = 102;
+    public static final int RCODE_SELECT_IMAGE = 102;
 
     private SharedPreferences mPrefs;
     private boolean editEnabled;
@@ -107,7 +105,12 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         setPrefs();
 
         fetchAlbums();
-        syncAlbums();
+        container.post(new Runnable() {
+            @Override
+            public void run() {
+                syncAlbums();
+            }
+        });
 
         return root;
     }
@@ -193,7 +196,7 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
             mHomeAlbumPreview.setImageBitmap(null);
         }
         if (lockAlbum.getPreview() != null) {
-            mLockAlbumPreview.setImageBitmap(cache.requestImage(homeAlbum.getPreview(), 0, mLockAlbumPreview.getMeasuredWidth(), mLockAlbumPreview.getMeasuredHeight()));
+            mLockAlbumPreview.setImageBitmap(cache.requestImage(lockAlbum.getPreview(), 1, mLockAlbumPreview.getMeasuredWidth(), mLockAlbumPreview.getMeasuredHeight()));
         } else {
             mLockAlbumPreview.setImageBitmap(null);
         }
@@ -380,54 +383,18 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
      *              1 for Lock screen
      */
     private void changeAlbum(int id) {
-        ContextMenuDialog dialog = new ContextMenuDialog(getContext(), "Album Type");
-        dialog.addButton("Folder", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.i(TAG, "Folder selected");
-                new FolderSelectDialog(getContext(), new FolderSelectDialog.ResultListener() {
-                    @Override
-                    public void onSelected(String[] folders) {
-                        Log.i(TAG, "Folders selected! TODO");
-                        for (String f : folders) {
-                            Log.i(TAG, "folder: " + f);
-                        }
-                    }
-                }).show();
-            }
-        });
-        dialog.addButton("Tag", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.i(TAG, "Tag selected");
-                new TagSelectDialog(getContext(), new TagSelectDialog.ResultListener() {
-                    @Override
-                    public void onSelected(String[] include, String[] exclude) {
-                        Log.i(TAG, "Tags selected! TODO");
-                        for (String s : include) {
-                            Log.i(TAG, "+" + s);
-                        }
-                        for (String s : exclude) {
-                            Log.i(TAG, "-" + 1);
-                        }
-                    }
-                }).show();
-            }
-        });
-        dialog.addButton("Image", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.i(TAG, "Image selected");
-                Intent intent = new Intent(getContext(), SelectImagesActivity.class);
-                Context ctx = getContext();
-                assert (ctx != null);
-                File externalDir = ctx.getExternalFilesDir(null);
-                assert (externalDir != null);
-                intent.putExtra(SelectImagesActivity.EXTRA_ROOT, externalDir.getAbsolutePath());
-                startActivityForResult(intent, RCODE_SELECT_IMAGE);
-            }
-        });
-        dialog.show();
+        Album album;
+        switch(id) {
+            case 0:
+                album = homeAlbum;
+                break;
+            case 1:
+                album = lockAlbum;
+                break;
+            default:
+                throw new IllegalArgumentException("Id should be one of 0 or 1");
+        }
+        new AlbumEditDialog(this, album).show();
         currentlySelecting = id;
     }
 
@@ -435,48 +402,13 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
-            if (requestCode == RCODE_SELECT_IMAGE) {
+        if (requestCode == RCODE_SELECT_IMAGE) {
+            if (resultCode == RESULT_OK) {
                 String[] images = data.getStringArrayExtra(SelectImagesActivity.EXTRA_IMAGES);
-                Log.i(TAG, images.length + " images picked");
-                setAlbumImages(currentlySelecting, images);
-                currentlySelecting = -1;
+                onImagesSelected(images);
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    private void setAlbumFolders(int id, String[] folders) {
-
-    }
-
-    private void setAlbumImages(int id, String[] images) {
-        String prefKey;
-        Album album;
-        switch (id) {
-            case 0:
-                prefKey = getString(R.string.key_wallpaper_home_album);
-                homeAlbum = new ImageAlbum(images);
-                album = homeAlbum;
-                break;
-            case 1:
-                prefKey = getString(R.string.key_wallpaper_lock_album);
-                lockAlbum = new ImageAlbum(images);
-                album = lockAlbum;
-                break;
-            default:
-                return;
-        }
-        syncAlbums();
-        SharedPreferences.Editor editor = mPrefs.edit();
-        try {
-            editor.putString(prefKey, album.jsonify().toString(0));
-        } catch (JSONException e) {
-            e.printStackTrace();
-            editor.putString(prefKey, "null");
-        } finally {
-            editor.apply();
         }
     }
 
@@ -494,12 +426,65 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         switch (requestId) {
             case 0:
                 //home
+                Log.i(TAG, "Home bitmap loaded");
                 mHomeAlbumPreview.setImageBitmap(bitmap);
                 break;
             case 1:
                 //lock
+                Log.i(TAG, "Lock bitmap loaded");
                 mLockAlbumPreview.setImageBitmap(bitmap);
                 break;
+        }
+    }
+
+    @Override
+    public void onFoldersSelected(String[] folders) {
+        Log.i(TAG, folders.length + " folders selected");
+        setAndStoreAlbum(currentlySelecting, new FolderAlbum(folders));
+        currentlySelecting = -1;
+    }
+
+    @Override
+    public void onTagsSelected(String[] include, String[] exclude) {
+        Log.i(TAG, include.length + " tags included, " + exclude.length + " tags excluded");
+        setAndStoreAlbum(currentlySelecting, new TagAlbum(include, exclude));
+        currentlySelecting = -1;
+    }
+
+    private void onImagesSelected(String[] images) {
+        Log.i(TAG, images.length + " images picked");
+        setAndStoreAlbum(currentlySelecting, new ImageAlbum(images));
+        currentlySelecting = -1;
+    }
+
+    private void setAndStoreAlbum(int id, Album value) {
+        String prefKey;
+        Album album;
+        switch (id) {
+            case 0:
+                prefKey = getString(R.string.key_wallpaper_home_album);
+                homeAlbum = value;
+                album = homeAlbum;
+                break;
+            case 1:
+                prefKey = getString(R.string.key_wallpaper_lock_album);
+                lockAlbum = value;
+                album = lockAlbum;
+                break;
+            default:
+                throw new IllegalArgumentException("Id must be one of 0 or 1");
+        }
+        // Set views to match
+        syncAlbums();
+        // Store album preference
+        SharedPreferences.Editor editor = mPrefs.edit();
+        try {
+            editor.putString(prefKey, album.jsonify().toString(0));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            editor.putString(prefKey, "null");
+        } finally {
+            editor.apply();
         }
     }
 }

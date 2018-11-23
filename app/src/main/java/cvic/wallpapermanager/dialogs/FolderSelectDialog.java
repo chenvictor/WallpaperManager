@@ -1,59 +1,61 @@
 package cvic.wallpapermanager.dialogs;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.model.albumable.FolderManager;
 
-public class FolderSelectDialog implements DialogInterface.OnMultiChoiceClickListener, DialogInterface.OnClickListener {
+public class FolderSelectDialog extends MultiSelectDialog {
 
+    private static final int CHECKED = 1;
+    private static final int CHECKED_DRAWABLE = R.drawable.checkbox_checked;
     private final ResultListener listener;
-    private String[] folders;
-    private boolean[] checked;
-    private Dialog dialog;
 
-    public FolderSelectDialog(Context ctx, ResultListener listener) {
+    FolderSelectDialog(Context ctx, ResultListener listener) {
+        super(ctx, FolderManager.getInstance().getFolderNames());
         this.listener = listener;
-        folders = FolderManager.getInstance().getFolderNames();
-        checked = new boolean[folders.length];
-        dialog = new AlertDialog.Builder(ctx).
-                setTitle("Select Folders").
-                setMultiChoiceItems(folders, checked, this).
-                setNegativeButton(android.R.string.no, null).
-                setPositiveButton(android.R.string.yes, this).
-                create();
     }
 
     @Override
-    public void onClick(DialogInterface dialogInterface, int idx, boolean val) {
-        checked[idx] = val;
+    protected String getTitle() {
+        return "Select Folders";
     }
 
     @Override
-    public void onClick(DialogInterface dialogInterface, int viewId) {
-        dialogInterface.dismiss();
+    protected int numStates() {
+        return 2;
+    }
+
+    @Override
+    protected int getStateDrawable(int state) {
+        return CHECKED_DRAWABLE;
+    }
+
+    @Override
+    protected boolean onOkClicked() {
         List<String> retVal = new ArrayList<>();
-        for (int i = 0; i < folders.length; i++) {
-            if (checked[i]) {
-                retVal.add(folders[i]);
+        for (int i = 0; i < names.length; i++) {
+            if (states[i] == CHECKED) {
+                retVal.add(names[i]);
             }
         }
-        String[] retArr = new String[retVal.size()];
-        listener.onSelected(retVal.toArray(retArr));
-    }
-
-    public void show() {
-        dialog.show();
+        if (retVal.size() > 0) {
+            String[] retArr = new String[retVal.size()];
+            listener.onFoldersSelected(retVal.toArray(retArr));
+            return true;
+        } else {
+            Toast.makeText(ctx, "At least one Folder must be selected!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
     }
 
     public interface ResultListener {
 
-        void onSelected(String[] folders);
+        void onFoldersSelected(String[] folders);
 
     }
 }

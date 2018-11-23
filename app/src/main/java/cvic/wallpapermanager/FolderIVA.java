@@ -3,7 +3,7 @@ package cvic.wallpapermanager;
 import android.os.Bundle;
 import android.view.View;
 
-public class FolderIVA extends ImageViewActivity {
+public class FolderIVA extends SingleImageActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

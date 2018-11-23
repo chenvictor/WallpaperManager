@@ -18,7 +18,7 @@ public class FilterUtils {
                     @Override
                     public boolean accept(File file, String s) {
                         File dir = new File(file, s);
-                        return dir.isDirectory();
+                        return dir.isDirectory() && dir.list().length > 0;
                     }
                 };
             case IMAGE:
@@ -39,7 +39,7 @@ public class FilterUtils {
                 return new FilenameFilter() {
                     @Override
                     public boolean accept(File file, String s) {
-                        if (file.isDirectory())
+                        if (file.isDirectory() && file.list().length > 0)
                             return true;
                         for (String extension : ACCEPTED) {
                             if (s.endsWith(extension)) {

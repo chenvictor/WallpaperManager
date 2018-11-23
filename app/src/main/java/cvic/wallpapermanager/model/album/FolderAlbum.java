@@ -22,7 +22,7 @@ public class FolderAlbum extends Album {
         folders = new ArrayList<>();
     }
 
-    FolderAlbum(String[] folders) {
+    public FolderAlbum(String[] folders) {
         this();
         for (String name : folders) {
             this.folders.add(FolderManager.getInstance().getFolder(name));
@@ -74,6 +74,7 @@ public class FolderAlbum extends Album {
             for (Folder f : folders) {
                 array.put(f.getName());
             }
+            object.put(JSON.KEY_FOLDERS, array);
         } catch (JSONException e) {
             e.printStackTrace();
         }

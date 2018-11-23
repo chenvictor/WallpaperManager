@@ -17,7 +17,7 @@ import cvic.wallpapermanager.R;
  */
 public class ContextMenuDialog {
 
-    private Context ctx;
+    protected Context ctx;
     private Dialog dialog;
     private LinearLayout buttonArea;
 
@@ -37,6 +37,7 @@ public class ContextMenuDialog {
     public void addButton (String text, final View.OnClickListener listener) {
         Button newButton = (Button) LayoutInflater.from(ctx).inflate(R.layout.button_flush, buttonArea, false);
         newButton.setText(text);
+        //newButton.setBackgroundColor(highlight ? HIGHLIGHT_COLOR : DEFAULT_COLOR);
         newButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

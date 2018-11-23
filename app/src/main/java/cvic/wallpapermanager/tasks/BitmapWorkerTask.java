@@ -28,6 +28,7 @@ public class BitmapWorkerTask extends AsyncTask<Void, Void, Bitmap> {
         try {
             return DisplayUtils.decodeBitmap(mFile.getAbsolutePath(), width, height);
         } catch (Exception e) {
+            e.printStackTrace();
             cancel(true);
             return null;
         }

@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.preference.PreferenceManager;
 import android.renderscript.Allocation;
 import android.renderscript.Element;
@@ -27,6 +28,7 @@ class PreviewHandler {
     /**
      * Handles wallpaper preview
      */
+    private final Rect textBounds = new Rect();
     private final Paint PAINT = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final Paint TEXT = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Bitmap home;
@@ -35,9 +37,9 @@ class PreviewHandler {
 
     @SuppressWarnings("ConstantConditions")
     PreviewHandler(Context ctx) {
-        TEXT.setColor(Color.BLUE);
-        TEXT.setTextSize(60);
-        TEXT.setTextAlign(Paint.Align.CENTER);
+        PAINT.setAlpha(200);
+        TEXT.setColor(Color.WHITE);
+        TEXT.setTextSize(80);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         setPlacer(prefs.getInt(ctx.getString(R.string.key_position), 0));
@@ -108,26 +110,37 @@ class PreviewHandler {
 
     private void drawTopBottom(Canvas canvas, int width, int height, Bitmap homePlaced, Bitmap lockPlaced) {
         canvas.save();
+        canvas.clipRect(0, 0, width, height/2);
         canvas.drawBitmap(homePlaced, 0, 0, PAINT);
-        canvas.drawText("Home screen", width/2, height/4, TEXT);
+        drawTextCentered(canvas,"Home screen", width/2, height/4);
+        canvas.restore();
+        canvas.save();
         canvas.clipRect(0, height/2, width, height);
         canvas.drawBitmap(lockPlaced, 0, 0, PAINT);
-        canvas.drawText("Lock screen", width/2, height/4*3, TEXT);
+        drawTextCentered(canvas, "Lock screen", width/2, height/4*3);
         canvas.restore();
     }
 
     private void drawLeftRight(Canvas canvas, int width, int height, Bitmap homePlaced, Bitmap lockPlaced) {
         canvas.save();
+        canvas.clipRect(0, 0, width/2, height);
         canvas.drawBitmap(homePlaced, 0, 0, PAINT);
-        canvas.drawText("Home screen", width/4, height/2, TEXT);
+        drawTextCentered(canvas, "Home screen", width/4, height/2);
+        canvas.restore();
+        canvas.save();
         canvas.clipRect(width/2, 0, width, height);
         canvas.drawBitmap(lockPlaced, 0, 0, PAINT);
-        canvas.drawText("Lock screen", width/4*3, height/2, TEXT);
+        drawTextCentered(canvas, "Lock screen", width/4*3, height/2);
         canvas.restore();
     }
 
     void destroy() {
         home.recycle();
         lock.recycle();
+    }
+
+    private void drawTextCentered(Canvas canvas, String text, float cx, float cy){
+        TEXT.getTextBounds(text, 0, text.length(), textBounds);
+        canvas.drawText(text, cx - textBounds.exactCenterX(), cy - textBounds.exactCenterY(), TEXT);
     }
 }

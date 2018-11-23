@@ -17,7 +17,7 @@ import java.util.Set;
 import cvic.wallpapermanager.ui.MultiSelectImageAdapter;
 import cvic.wallpapermanager.utils.FilterUtils;
 
-import static cvic.wallpapermanager.ImageViewActivity.IMAGE_PATH;
+import static cvic.wallpapermanager.SingleImageActivity.IMAGE_PATH;
 
 public class SelectImagesActivity extends MultiSelectImageActivity {
 

@@ -11,7 +11,8 @@ public class JSON {
     public static final String VALUE_TAG = "val_tag";
     public static final String VALUE_IMAGE = "val_image";
     public static final String KEY_FOLDERS = "key_folders";
-    public static final String KEY_TAGS = "key_tags";
+    public static final String KEY_TAG_INCLUDE = "key_tag_include";
+    public static final String KEY_TAG_EXCLUDE = "key_tag_exclude";
     public static final String KEY_IMAGES = "key_images";
 
 }

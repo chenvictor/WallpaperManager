@@ -7,10 +7,11 @@ import android.support.annotation.NonNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class Tag extends Albumable {
+public class Tag extends Albumable implements Iterable<ImageFile>{
 
     private String name;
     Set<ImageFile> imageSet;
@@ -69,9 +70,19 @@ public class Tag extends Albumable {
 
     }
 
+    public boolean hasImage(ImageFile image) {
+        return imageSet.contains(image);
+    }
+
     @NonNull
     @Override
     public String toString() {
         return "Tag: " + getName();
+    }
+
+    @NonNull
+    @Override
+    public Iterator<ImageFile> iterator() {
+        return imageList.iterator();
     }
 }

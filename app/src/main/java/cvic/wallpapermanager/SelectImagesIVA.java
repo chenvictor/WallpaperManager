@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-public class SelectImagesIVA extends ImageViewActivity {
+public class SelectImagesIVA extends SingleImageActivity {
 
     private String path;
 
