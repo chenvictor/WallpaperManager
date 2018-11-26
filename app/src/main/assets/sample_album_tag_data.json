@@ -1,0 +1,15 @@
+{
+  "key_type": "val_tag",
+  "key_tag_include":
+    [
+      "tag1",
+      "tag2",
+      "tag4"
+    ],
+  "key_tag_exclude":
+    [
+      "tag3",
+      "tag7"
+    ],
+  "desc": "Album data for an tag album. Entries in the 'key_tag_include' array are tags to be included. At least one tag must be included. Entries in the 'key_tag_exclude' array are tags to be excluded."
+}

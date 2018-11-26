@@ -1,0 +1,10 @@
+{
+  "key_type": "val_image",
+  "key_images":
+    [
+      "path/folder1/imageName1.png",
+      "path/folder2/imageName3.png",
+      "path/folder1/imageName2.jpg"
+    ],
+  "desc": "Album data for an image album. Entries in the 'key_images' array are absolute paths to the images included in the album"
+}

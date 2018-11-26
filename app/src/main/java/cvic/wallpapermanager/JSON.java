@@ -15,4 +15,10 @@ public class JSON {
     public static final String KEY_TAG_EXCLUDE = "key_tag_exclude";
     public static final String KEY_IMAGES = "key_images";
 
+    public static final String FILE_TAGS = "tags.json";
+    public static final String KEY_TAGS = "key_tags";
+
+    public static final String KEY_IMG_NAME = "key_img_name";
+    public static final String KEY_IMG_TAGS = "key_img_tags";
+
 }

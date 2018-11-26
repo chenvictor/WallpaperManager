@@ -10,6 +10,7 @@ public class FilterUtils {
     public static final int FOLDER = 0;
     public static final int IMAGE = 1;
     public static final int EITHER = 2;
+    public static final int FOLDER_EMPTY = 3;
 
     public static FilenameFilter get(int type) {
         switch (type) {
@@ -49,9 +50,20 @@ public class FilterUtils {
                         return false;
                     }
                 };
+            case FOLDER_EMPTY:
+                return new FilenameFilter() {
+                    @Override
+                    public boolean accept(File file, String s) {
+                        return new File(file, s).isDirectory();
+                    }
+                };
             default:
                 throw new UnsupportedOperationException();
         }
+    }
+
+    public static boolean isValidName(String text) {
+        return text.matches("[a-zA-Z0-9]+");
     }
 
 }

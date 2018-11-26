@@ -3,6 +3,8 @@
     <string name="request_enabled">Live wallpaper is not currently enabled. Enable wallpaper?</string>
     <string name="confirm_enabled">Live wallpaper enabled!</string>
 
+    <string name="loading_progress">%d/%d</string>
+
     <!-- Wallpaper -->
     <string-array name="wallpaper_interval_type_spinner">
         <item>minutes</item>
@@ -17,14 +19,16 @@
         <item>Folder</item>
         <item>Tag</item>
     </string-array>
+    <string name="message_no_albumables">Press \'New\' to add a %s</string>
 
     <plurals name="folder_title_plural">
         <item quantity="one">%s (%d image)</item>
         <item quantity="other">%s (%d images)</item>
     </plurals>
-    <string name="message_rename_failed">Name contains invalid characters.</string>
-    <string name="message_no_folders">No images found. Press \'New\' to add a folder</string>
-    <string name="message_folder_exists">Folder already exists!</string>
+    <string name="message_rename_failed_invalid_name">Name contains invalid characters.</string>
+    <string name="message_rename_failed_generic">Rename failed!</string>
+    <string name="message_folder_already_exists">Folder already exists!</string>
+    <string name="message_tag_already_exists">Folder already exists!</string>
 
     <!-- Preferences -->
     <string-array name="settings_position_descriptions">
@@ -98,4 +102,5 @@
     <string name="header_lock_notification">Display wallpaper change notification</string>
     <string name="notification_message">Change lock screen wallpaper</string>
     <string name="message_request_enable">NOTE: Features will not work unless live wallpaper is set. Click here to set live wallpaper.</string>
+    <string name="placeholder_fraction">9/10</string>
 </resources>

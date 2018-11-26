@@ -18,9 +18,9 @@ public class AlbumFactory {
             String type = object.getString(JSON.KEY_TYPE);
             switch (type) {
                 case JSON.VALUE_FOLDER:
-                    return fromFolder(object);
+                    //return fromFolder(object);
                 case JSON.VALUE_TAG:
-                    return fromTag(object);
+                    //return fromTag(object);
                 case JSON.VALUE_IMAGE:
                     return fromImage(object);
             }

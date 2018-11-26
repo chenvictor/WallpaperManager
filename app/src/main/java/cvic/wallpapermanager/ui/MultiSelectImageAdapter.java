@@ -80,13 +80,9 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
     public void onViewRecycled(@NonNull ViewHolder holder) {
         super.onViewRecycled(holder);
         Log.i(TAG, "Recycling: " + holder.getAdapterPosition());
-        cache.cancelRequest(holder.getAdapterPosition());
-//        if (!cache.isCached(holder.getAdapterPosition())) {
-//            try {
-//                Bitmap bitmap = ((BitmapDrawable) holder.image.getDrawable()).getBitmap();
-//                bitmap.recycle(); // TODO recycle bitmaps not in use
-//            } catch (ClassCastException ignored) {}
-//        }
+        if (holder.getAdapterPosition() >= 0) {
+            cache.cancelRequest(getFile(holder.getAdapterPosition()));
+        }
     }
 
     @Override
@@ -201,7 +197,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
     }
 
     @Override
-    public final void onBitmapAvailable(int requestId, Bitmap bitmap) {
+    public final void onBitmapAvailable(File file, int requestId, Bitmap bitmap) {
         notifyItemChanged(requestId);
     }
 

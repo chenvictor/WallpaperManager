@@ -13,16 +13,29 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
+
+import cvic.wallpapermanager.model.ImageFileManager;
+import cvic.wallpapermanager.model.albumable.FolderManager;
+import cvic.wallpapermanager.model.albumable.TagManager;
+import cvic.wallpapermanager.tasks.FetchFolderTask;
+import cvic.wallpapermanager.tasks.FetchTagsTask;
 import cvic.wallpapermanager.ui.AlbumsFragment;
 import cvic.wallpapermanager.ui.SettingsFragment;
 import cvic.wallpapermanager.ui.WallpaperFragment;
 
-public class WallpaperManager extends AppCompatActivity {
+public class WallpaperManager extends AppCompatActivity implements FetchFolderTask.TaskListener, FetchTagsTask.TaskListener {
+
+    private static final String TAG = "cvic.wpm.main";
+    private static final String MANAGERS_LOADED_KEY = "cvic.wpm.key_managers_loaded";
+    private boolean loaded = false;
 
     private static final String[] PAGE_TITLES = {"Wallpaper", "Albums", "Settings"};
 
+    private File externalFilesRoot;
     private TabLayout mTabs;
     private ViewPager mViewPager;
 
@@ -33,6 +46,7 @@ public class WallpaperManager extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        externalFilesRoot = getExternalFilesDir(null);
         initPrefs();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -41,6 +55,38 @@ public class WallpaperManager extends AppCompatActivity {
 
         mTabs = findViewById(R.id.appbar_tabs);
         mViewPager = findViewById(R.id.main_pager);
+        if (savedInstanceState != null && savedInstanceState.getBoolean(MANAGERS_LOADED_KEY, false)) {
+            Log.i(TAG, "Activity rotated, skipping manager loading");
+            loaded = true;
+            initTabs();
+        } else {
+            Log.i(TAG, "First creation, loading managers");
+            loadFoldersAndTags();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(MANAGERS_LOADED_KEY, loaded);
+    }
+
+    private void loadFoldersAndTags() {
+        FolderManager.getInstance().clear();
+        FolderManager.setRoot(externalFilesRoot);
+        TagManager.getInstance().clear();
+        ImageFileManager.getInstance().clear();
+        new FetchTagsTask(this, externalFilesRoot).execute();
+    }
+
+    @Override
+    public void onTagsFetched() {
+        new FetchFolderTask(this, externalFilesRoot).execute();
+    }
+
+    @Override
+    public void onFoldersFetched() {
+        loaded = true;
         initTabs();
     }
 
@@ -96,5 +142,13 @@ public class WallpaperManager extends AppCompatActivity {
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //Save tag json
+        TagManager.getInstance().saveJson(new File(externalFilesRoot, JSON.FILE_TAGS));
+        FolderManager.getInstance().saveJson();
     }
 }

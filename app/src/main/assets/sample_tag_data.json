@@ -1,0 +1,13 @@
+{
+  "key_tags":
+    [
+      "tag1",
+      "tag2",
+      "tag3",
+      "tag4",
+      "tag5",
+      "tag6",
+      "tag7"
+    ],
+  "desc": "Tag data containing all the different tags the user has created. The default 'untagged' tag is never included and created at runtime"
+}

@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import cvic.wallpapermanager.model.ImageFile;
 import cvic.wallpapermanager.tasks.BitmapWorkerTask;
 
 public class ImageCache implements BitmapWorkerTask.TaskListener{
@@ -17,9 +18,9 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     private static final int DEFAULT_CACHE_SIZE = 16;
 
     private Bitmap mPlaceholder;
-    private LruCache<Integer, Bitmap> cache;
+    private LruCache<File, Bitmap> cache;
     private CacheListener mListener;
-    private Map<Integer, BitmapWorkerTask> requests;
+    private Map<File, BitmapWorkerTask> requests;
 
     @SuppressLint("UseSparseArrays")
     public ImageCache(CacheListener listener, int cacheSize) {
@@ -34,9 +35,16 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
         this(listener, DEFAULT_CACHE_SIZE);
     }
 
+    public Bitmap requestImage (ImageFile file, int requestId, int width, int height) {
+        if (file == null) {
+            return mPlaceholder;
+        }
+        return requestImage(file.getFile(), requestId, width, height);
+    }
+
     /**
      * Request an image create the cache
-     * @param file          File corresponding the the image
+     * @param file          ImageFile corresponding the the image
      * @param requestId     a requestId, used to identify the request in the callback
      * @param width         requested width
      * @param height        requested height
@@ -47,43 +55,33 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
      */
     public Bitmap requestImage (File file, int requestId, int width, int height) {
         if (file == null) {
-            cache.remove(requestId);
             return mPlaceholder;
         }
-        Log.i(TAG, "Image: " + file.toString() + " requested.");
-        Bitmap cached = cache.get(requestId);
+        //Log.i(TAG, "Image: " + file.toString() + " requested.");
+        Bitmap cached = cache.get(file);
         if (cached != null) {
             return cached;
         } else {
             BitmapWorkerTask task = new BitmapWorkerTask(file, requestId, this, width, height);
-            requests.put(requestId, task);
+            requests.put(file, task);
             task.execute();
             return mPlaceholder;
         }
     }
 
-    public boolean isCached(Bitmap bitmap) {
-        return cache.snapshot().values().contains(bitmap);
-    }
-
-    public boolean isCached(Integer key) {
-        return cache.snapshot().keySet().contains(key);
-    }
-
     /**
      * Cancels the BitmapWorkerTask associated with the requestId if it is still running
-     * @param requestId     requestId to cancel
      */
-    public void cancelRequest (int requestId) {
-        if (requests.containsKey(requestId)) {
+    public void cancelRequest (File file) {
+        if (requests.containsKey(file)) {
             try {
-                BitmapWorkerTask task = requests.get(requestId);
+                BitmapWorkerTask task = requests.get(file);
                 if (task != null) {
                     task.cancel(true);
                 }
             } catch (Exception ignored) {
             } finally {
-                requests.remove(requestId);
+                requests.remove(file);
             }
         }
     }
@@ -99,13 +97,13 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     }
 
     @Override
-    public void onTaskComplete(int requestId, Bitmap bitmap) {
+    public void onTaskComplete(File file, int requestId, Bitmap bitmap) {
         if (bitmap != null) {
-            cache.put(requestId, bitmap);
+            cache.put(file, bitmap);
             if (mListener != null) {
-                mListener.onBitmapAvailable(requestId, bitmap);
+                mListener.onBitmapAvailable(file, requestId, bitmap);
             }
-            requests.remove(requestId);
+            requests.remove(file);
         }
     }
 
@@ -116,7 +114,7 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
 
     public interface CacheListener {
 
-        void onBitmapAvailable(int requestId, Bitmap bitmap);
+        void onBitmapAvailable(File file, int requestId, Bitmap bitmap);
 
     }
 }

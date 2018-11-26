@@ -2,6 +2,7 @@ package cvic.wallpapermanager.model.albumable;
 
 import android.support.annotation.NonNull;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -11,48 +12,30 @@ public class FolderManager implements Iterable<Folder>{
     /**
      * Singleton Pattern
      */
-    private static FolderManager instance;
-
+    private static final FolderManager instance = new FolderManager();
+    private static File root;
     private List<Folder> folders;
 
     public static FolderManager getInstance() {
-        if (instance == null) {
-            instance = new FolderManager();
-        }
         return instance;
+    }
+
+    public static void setRoot(File root) {
+        FolderManager.root = root;
     }
 
     private FolderManager() {
         folders = new ArrayList<>();
     }
 
-    public synchronized void setFolders(List<Albumable> folders) {
-        removeAll();
-        for (Albumable folder : folders) {
-            addFolder((Folder) folder);
-        }
-    }
-
     public synchronized void addFolder(Folder folder) {
         if (folders.add(folder)) {
             folder.setId(folders.size() - 1);
-            FolderTag tag = new FolderTag(folder);
-            folder.setAssociated(tag);
-            TagManager.getInstance().addTag(folder.getId(), tag);
         }
     }
 
-    private synchronized void removeAll() {
-        for (Folder folder : folders) {
-            TagManager.getInstance().removeTag(folder.getAssociated());
-            folder.setId(-1);
-        }
-        folders.clear();
-    }
-
-    private synchronized void removeFolder(Folder folder) {
+    public synchronized void removeFolder(Folder folder) {
         if (folders.remove(folder)) {
-            TagManager.getInstance().removeTag(folder.getAssociated());
             for (int idx = 0; idx < folders.size(); idx++) {
                 folders.get(idx).setId(idx);
             }
@@ -96,4 +79,15 @@ public class FolderManager implements Iterable<Folder>{
     public synchronized Iterator<Folder> iterator() {
         return folders.iterator();
     }
+
+    public void clear() {
+        folders.clear();
+    }
+
+    public void saveJson() {
+        for (Folder folder : folders) {
+            folder.saveJson();
+        }
+    }
+
 }

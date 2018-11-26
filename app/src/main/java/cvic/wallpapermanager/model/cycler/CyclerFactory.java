@@ -22,9 +22,9 @@ public class CyclerFactory {
             String type = object.getString(JSON.KEY_TYPE);
             switch (type) {
                 case JSON.VALUE_FOLDER:
-                    return fromFolder(ctx, object);
+//                    return fromFolder(ctx, object);
                 case JSON.VALUE_TAG:
-                    return fromTag(object);
+//                    return fromTag(object);
                 case JSON.VALUE_IMAGE:
                     return fromImage(object);
             }

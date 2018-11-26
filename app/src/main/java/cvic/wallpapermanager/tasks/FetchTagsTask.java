@@ -1,49 +1,60 @@
 package cvic.wallpapermanager.tasks;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
 
-import cvic.wallpapermanager.model.albumable.Albumable;
+import cvic.wallpapermanager.JSON;
+import cvic.wallpapermanager.model.albumable.Tag;
+import cvic.wallpapermanager.model.albumable.TagManager;
 import cvic.wallpapermanager.utils.JSONUtils;
 
-class FetchTagsTask extends AsyncTask<String, Void, List<Albumable>> {
+public class FetchTagsTask extends AsyncTask<Void, Void, Void> {
 
-    private final TaskListener mListener;
+    private static final String TAG = "cvic.wpm.ftt";
 
-    public FetchTagsTask (TaskListener listener) {
-        mListener = listener;
+    private final File root;
+    private final TaskListener listener;
+
+    public FetchTagsTask (TaskListener listener, File root) {
+        this.listener = listener;
+        this.root = root;
     }
 
     @Override
-    protected List<Albumable> doInBackground(String... dirPath) {
-        if (dirPath.length != 1) {
-            cancel(true);
-            return null;
-        }
+    protected Void doInBackground(Void... unused) {
+        TagManager manager = TagManager.getInstance();
         try {
-            JSONObject tagData = JSONUtils.getJSON(dirPath[0] + File.separator + "tags.json");
-            
+            JSONObject tagData = JSONUtils.getJSON(new File(root, JSON.FILE_TAGS).getAbsolutePath());
+            JSONArray array = tagData.getJSONArray(JSON.KEY_TAGS);
+            for (int i = 0; i < array.length(); i++) {
+                manager.addTag(new Tag(array.getString(i)));
+            }
+            Log.i(TAG, array.length() + " tags loaded.");
         } catch (FileNotFoundException e) {
+            Log.i(TAG, "tags.json file not found. Starting with no user tags.");
             e.printStackTrace();
-            return null;
+        } catch (JSONException e) {
+            Log.i(TAG, "json data corrupt. Starting with no user tags.");
+            e.printStackTrace();
         }
         return null;
     }
 
     @Override
-    protected void onPostExecute(List<Albumable> tags) {
-        super.onPostExecute(tags);
-        mListener.onTagsFetched(tags);
+    protected void onPostExecute(Void unused) {
+        listener.onTagsFetched();
     }
 
-    interface TaskListener {
+    public interface TaskListener {
 
-        void onTagsFetched(List<Albumable> tags);
+        void onTagsFetched();
 
     }
 }

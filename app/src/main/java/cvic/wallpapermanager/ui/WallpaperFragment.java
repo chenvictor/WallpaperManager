@@ -31,6 +31,8 @@ import android.widget.TextView;
 
 import org.json.JSONException;
 
+import java.io.File;
+
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.SelectImagesActivity;
 import cvic.wallpapermanager.dialogs.AlbumEditDialog;
@@ -92,6 +94,7 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     public WallpaperFragment() {
         // Required empty public constructor
         cache = new ImageCache(this, 2);
+        setRetainInstance(true);
     }
 
     @Override
@@ -422,7 +425,7 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     }
 
     @Override
-    public void onBitmapAvailable(int requestId, Bitmap bitmap) {
+    public void onBitmapAvailable(File file, int requestId, Bitmap bitmap) {
         switch (requestId) {
             case 0:
                 //home

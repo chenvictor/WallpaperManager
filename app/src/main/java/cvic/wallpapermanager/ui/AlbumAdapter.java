@@ -14,7 +14,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import cvic.wallpapermanager.AlbumablePreviewActivity;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import cvic.wallpapermanager.AlbumableViewActivity;
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.model.albumable.Albumable;
 import cvic.wallpapermanager.model.albumable.Folder;
@@ -34,6 +38,7 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
     private final AlbumsFragment mFrag;
     private final Context mCtx;
 
+    private Map<Albumable, Integer> adapterPositionMap;
     private ImageCache mCache;
 
     AlbumAdapter(AlbumsFragment fragment, int gridSize) {
@@ -41,6 +46,7 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
         mCtx = fragment.getContext();
         mCache = new ImageCache(this);
         size = gridSize;
+        adapterPositionMap = new HashMap<>();
     }
 
     @NonNull
@@ -68,7 +74,7 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
 
     private void onClicked(int idx) {
         Albumable item = getItem(idx);
-        Intent intent = new Intent(mCtx, AlbumablePreviewActivity.class);
+        Intent intent = new Intent(mCtx, AlbumableViewActivity.class);
         intent.putExtra(Albumable.EXTRA_TYPE, viewType);
         assert item != null;
         intent.putExtra(Albumable.EXTRA_ID, item.getId());
@@ -85,20 +91,17 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
         return null;
     }
 
-    void flushCache() {
-        mCache.flush();
-    }
-
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-        Albumable item = getItem(i);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int index) {
+        Albumable item = getItem(index);
         assert item != null;
-        item.setListener(this, i);
+        adapterPositionMap.put(item, index);
+        item.setListener(this);
         View view = viewHolder.itemView;
         ImageView preview = view.findViewById(R.id.grid_albumable_image);
         TextView label = view.findViewById(R.id.grid_albumable_label);
         label.setText(mCtx.getResources().getQuantityString(R.plurals.folder_title_plural, item.size(), item.getName(), item.size()));
-        preview.setImageBitmap(mCache.requestImage(item.getPreview(), i, size, size));
+        preview.setImageBitmap(mCache.requestImage(item.getPreview(), index, size, size));
     }
 
     @Override
@@ -113,35 +116,54 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
     }
 
     @Override
-    public void onBitmapAvailable(int requestId, Bitmap bitmap) {
+    public void onBitmapAvailable(File file, int requestId, Bitmap bitmap) {
         notifyItemChanged(requestId);
     }
 
     @Override
-    public void onAlbumRenameFailed() {
-        Toast.makeText(mCtx, R.string.message_rename_failed, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onAlbumRename(int idx, String newName) {
-        notifyItemChanged(idx);
-    }
-
-    @Override
-    public void onAlbumDelete(int idx) {
-        Log.i(TAG, "Album deleted: " + idx);
-        switch (viewType) {
-            case Albumable.TYPE_FOLDER:
-                FolderManager.getInstance().removeFolder(idx);
+    public void onAlbumRenameFailed(Albumable albumable, int errorCode) {
+        int errorMessage = R.string.message_rename_failed_generic;
+        switch (errorCode) {
+            case Albumable.RENAME_FAILED_ALREADY_EXISTS:
+                errorMessage = R.string.message_folder_already_exists;
                 break;
-            case Albumable.TYPE_TAG:
-                TagManager.getInstance().removeTag(idx);
+            case Albumable.RENAME_FAILED_INVALID_NAME:
+                errorMessage = R.string.message_rename_failed_invalid_name;
+                break;
+            case Albumable.RENAME_FAILED_OTHER:
+                errorMessage = R.string.message_rename_failed_generic;
                 break;
         }
-        flushCache();
+        Toast.makeText(mCtx, errorMessage, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onAlbumRename(Albumable albumable, String newName) {
+        // TODO
+    }
+
+    @Override
+    public void onAlbumDelete(Albumable albumable) {
+        Log.i(TAG, "Album deleted: " + albumable.getName());
+        switch (viewType) {
+            case Albumable.TYPE_FOLDER:
+                FolderManager.getInstance().removeFolder((Folder) albumable);
+                break;
+            case Albumable.TYPE_TAG:
+                TagManager.getInstance().removeTag((Tag) albumable);
+                break;
+        }
         notifyDataSetChanged();
         if (getItemCount() == 0) {
             mFrag.notifyEmpty(true);
+        }
+    }
+
+    @Override
+    public void onAlbumImagesChanged(Albumable albumable) {
+        Integer idx = adapterPositionMap.get(albumable);
+        if (idx != null) {
+            notifyItemChanged(idx);
         }
     }
 
@@ -162,7 +184,6 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
 
     void setViewType(int idx) {
         viewType = idx;
-        mCache.flush();
         notifyDataSetChanged();
     }
 

@@ -38,13 +38,17 @@ public class ContextMenuDialog {
         Button newButton = (Button) LayoutInflater.from(ctx).inflate(R.layout.button_flush, buttonArea, false);
         newButton.setText(text);
         //newButton.setBackgroundColor(highlight ? HIGHLIGHT_COLOR : DEFAULT_COLOR);
-        newButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialog.dismiss();
-                listener.onClick(view);
-            }
-        });
+        if (listener == null) {
+            newButton.setEnabled(false);
+        } else {
+            newButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dialog.dismiss();
+                    listener.onClick(view);
+                }
+            });
+        }
         buttonArea.addView(newButton);
     }
 

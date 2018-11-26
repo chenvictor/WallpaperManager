@@ -26,10 +26,10 @@ public abstract class MultiSelectDialog implements View.OnClickListener {
     String[] names;
     protected int[] states;
 
-    MultiSelectDialog(Context ctx, String[] names) {
+    public MultiSelectDialog(Context ctx, String[] names, int[] initialStates) {
         this.ctx = ctx;
         this.names = names;
-        states = new int[names.length];
+        states = initialStates;
         RecyclerView recycler = new RecyclerView(ctx);
         TagAdapter adapter = new TagAdapter();
         recycler.setAdapter(adapter);
@@ -41,6 +41,10 @@ public abstract class MultiSelectDialog implements View.OnClickListener {
                 setNegativeButton(android.R.string.cancel, null).
                 setPositiveButton(android.R.string.ok, null).
                 create();
+    }
+
+    public MultiSelectDialog(Context ctx, String[] names) {
+        this (ctx, names, new int[names.length]);
     }
 
     public void show() {

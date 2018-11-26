@@ -18,17 +18,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".WallpaperManager">
+        <activity android:name=".WallpaperManager"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".AlbumablePreviewActivity"
-            android:parentActivityName=".WallpaperManager" />
-
         <service
             android:name=".service.WPMService"
             android:label="WallpaperService"
@@ -42,17 +39,30 @@
                 android:resource="@xml/wallpaper" />
         </service>
 
-        <activity android:name=".SelectImagesActivity" />
+        <activity android:name=".SelectImagesActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".FolderIVA"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_image_view"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@style/FullscreenTheme"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".SelectImagesIVA"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_image_view"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@style/FullscreenTheme"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ReceiveImageActivity"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".AlbumableViewActivity"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

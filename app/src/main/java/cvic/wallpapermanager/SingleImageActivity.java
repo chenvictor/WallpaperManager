@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -80,6 +81,8 @@ public abstract class SingleImageActivity extends AppCompatActivity {
             hide();
         }
     };
+
+    private Uri imageUri;
     /**
      * Touch listener to use for in-layout UI controls to delay hiding the
      * system UI. This is to prevent the jarring behavior of controls going away
@@ -96,11 +99,12 @@ public abstract class SingleImageActivity extends AppCompatActivity {
         }
     };
 
-    void addButton(String text, View.OnClickListener listener) {
+    Button addButton(String text, View.OnClickListener listener) {
         Button button = (Button) LayoutInflater.from(this).inflate(R.layout.button_fullscreen_control, controlButtons, false);
         button.setText(text);
         button.setOnClickListener(listener);
         controlButtons.addView(button);
+        return button;
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -109,12 +113,12 @@ public abstract class SingleImageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_view);
 
-        File file = new File(getIntent().getStringExtra(IMAGE_PATH));
+        imageUri = getImageUri();
 
         mVisible = true;
         controlButtons = findViewById(R.id.fullscreen_content_controls);
         contentImage = findViewById(R.id.content_image);
-        contentImage.setImageURI(Uri.fromFile(file));
+        contentImage.setImageURI(imageUri);
 
         // Set up the user interaction to manually show or hide the system UI.
         contentImage.setOnClickListener(new View.OnClickListener() {
@@ -129,13 +133,18 @@ public abstract class SingleImageActivity extends AppCompatActivity {
         // while interacting with the UI.
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setOnTouchListener(mDelayHideTouchListener);
-        toolbar.setTitle(file.getName());
+        toolbar.setTitle(imageUri.getPath());
         setSupportActionBar(toolbar);
         assert (getSupportActionBar() != null);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         controlButtons.setOnTouchListener(mDelayHideTouchListener);
         show();
+    }
+
+    @NonNull
+    protected Uri getImageUri() {
+        return Uri.fromFile(new File(getIntent().getStringExtra(IMAGE_PATH)));
     }
 
     private void toggle() {

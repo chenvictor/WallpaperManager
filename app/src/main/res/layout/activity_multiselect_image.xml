@@ -30,6 +30,6 @@
         android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
-        tools:context=".AlbumablePreviewActivity" />
+        tools:context=".AlbumableViewActivity" />
 
 </android.support.constraint.ConstraintLayout>

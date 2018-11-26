@@ -19,21 +19,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.List;
 
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.dialogs.TextInputDialog;
 import cvic.wallpapermanager.model.albumable.Albumable;
 import cvic.wallpapermanager.model.albumable.Folder;
 import cvic.wallpapermanager.model.albumable.FolderManager;
+import cvic.wallpapermanager.model.albumable.Tag;
 import cvic.wallpapermanager.model.albumable.TagManager;
-import cvic.wallpapermanager.tasks.FetchFolderTask;
 import cvic.wallpapermanager.utils.DisplayUtils;
 
-/**
- * A simple {@link Fragment} subclass.
- */
-public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelectedListener, FetchFolderTask.TaskListener, TextInputDialog.ResultListener, View.OnClickListener {
+public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelectedListener,  TextInputDialog.ResultListener, View.OnClickListener {
 
     private static final String TAG = "cvic.wpm.albums";
 
@@ -44,7 +40,7 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
 
     private Button mAddAlbumBtn;
     private Spinner mViewTypeSpinner;
-    private TextView mNoFoldersMessage;
+    private TextView noAlbumableMessage;
 
     private RecyclerView mRecycler;
     private AlbumAdapter mAdapter;
@@ -62,15 +58,13 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
         setListeners();
         setPrefs();
         initRecycler();
-        loadFolders();
-        loadTags();
         return root;
     }
 
     private void findViews (View root) {
         mViewTypeSpinner = root.findViewById(R.id.view_type_spinner);
         mAddAlbumBtn = root.findViewById(R.id.btn_new_albumable);
-        mNoFoldersMessage = root.findViewById(R.id.no_folders_message);
+        noAlbumableMessage = root.findViewById(R.id.no_folders_message);
         mRecycler = root.findViewById(R.id.recycler);
     }
 
@@ -111,65 +105,48 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
             mPrefs.edit().putInt(getString(R.string.key_album_view_type), idx).apply();
         }
         mAdapter.setViewType(idx);
+        noAlbumableMessage.setText(getString(R.string.message_no_albumables, mViewTypeSpinner.getSelectedItem().toString()));
         notifyEmpty(mAdapter.getItemCount() == 0);
-    }
-
-    private void loadFolders() {
-        final String UN_INIT = getString(R.string.uninitialized);
-        assert (getContext() != null);
-        File file = getContext().getExternalFilesDir(null);
-        assert (file != null);
-        String rootPath = file.getAbsolutePath();
-        if (!rootPath.equals(UN_INIT)) {
-            new FetchFolderTask(this).execute(rootPath);
-        }
-    }
-
-    private void loadTags() {
-        // TODO
-    }
-
-    @Override
-    public void onFoldersFetched(List<Albumable> folders) {
-        FolderManager.getInstance().setFolders(folders);
-        TagManager.getInstance().initialize();
     }
 
     public void notifyEmpty(boolean empty) {
         if (empty) {
-            //Hide recycler, show message, set folder view, disable spinner
+            //Hide recycler, show message, disable spinner
             mRecycler.setVisibility(View.GONE);
-            mNoFoldersMessage.setVisibility(View.VISIBLE);
-            mViewTypeSpinner.setSelection(0, true);
-            mViewTypeSpinner.setEnabled(false);
+            noAlbumableMessage.setVisibility(View.VISIBLE);
         } else {
             //Show recycler, hide message, enable spinner
             mRecycler.setVisibility(View.VISIBLE);
-            mNoFoldersMessage.setVisibility(View.GONE);
-            mViewTypeSpinner.setEnabled(true);
+            noAlbumableMessage.setVisibility(View.GONE);
         }
     }
 
     @Override
     public void onResult(String input) {
         if (input == null) {
-            Toast.makeText(getContext(), R.string.message_rename_failed, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), R.string.message_rename_failed_generic, Toast.LENGTH_SHORT).show();
             return;
         }
         //Create New
         assert (getContext() != null);
         switch(mViewTypeSpinner.getSelectedItemPosition()) {
             case Albumable.TYPE_FOLDER:
+                FolderManager fm = FolderManager.getInstance();
                 File file = new File(getContext().getExternalFilesDir(null), input);
                 Log.i(TAG, "Creating Folder: " + file.getAbsolutePath());
                 if (!file.mkdir()) {
-                    Toast.makeText(getContext(), R.string.message_folder_exists, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), R.string.message_folder_already_exists, Toast.LENGTH_SHORT).show();
                 } else {
                     mAdapter.addAlbum(new Folder(file));
                 }
                 break;
             case Albumable.TYPE_TAG:
-                //TODO
+                TagManager tm = TagManager.getInstance();
+                if (tm.hasTag(input)) {
+                    Toast.makeText(getContext(), R.string.message_tag_already_exists, Toast.LENGTH_SHORT).show();
+                } else {
+                    mAdapter.addAlbum(new Tag(input));
+                }
                 break;
         }
     }
@@ -183,10 +160,10 @@ public class AlbumsFragment extends Fragment implements AdapterView.OnItemSelect
         }
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        mAdapter.notifyDataSetChanged();
-        mAdapter.flushCache();
-    }
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        mAdapter.notifyDataSetChanged();
+//        mAdapter.flushCache();
+//    }
 }

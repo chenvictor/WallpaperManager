@@ -1,6 +1,5 @@
 package cvic.wallpapermanager;
 
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -21,8 +20,6 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
     private static final int GRID_SIZE = 300;
     private static final String TAG = "cvic.wpm.apa";
 
-    private ProgressDialog loadingDialog;
-
     Toolbar toolbar;
 
     private RecyclerView mRecycler;
@@ -34,7 +31,6 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multiselect_image);
         initToolbar();
-        initDialog();
         mRecycler = findViewById(R.id.recycler);
         mAdapter = getAdapter();
         mAdapter.setSize(GRID_SIZE);
@@ -51,13 +47,6 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
         ActionBar bar = getSupportActionBar();
         assert bar != null;
         bar.setDisplayHomeAsUpEnabled(true);
-    }
-
-    private void initDialog() {
-        loadingDialog = new ProgressDialog(this);
-        loadingDialog.setCancelable(false);
-        loadingDialog.setCanceledOnTouchOutside(false);
-        loadingDialog.setIndeterminate(true);
     }
 
     @Override
@@ -125,19 +114,6 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    void setLoading(String title) {
-        loadingDialog.setTitle(title);
-        loadingDialog.show();
-    }
-
-    void updateLoading(String message) {
-        loadingDialog.setMessage(message);
-    }
-
-    void doneLoading() {
-        loadingDialog.cancel();
     }
 
     @Override

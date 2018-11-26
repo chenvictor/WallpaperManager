@@ -29,13 +29,8 @@ public class TextInputDialog {
         builder.setPositiveButton(ctx.getString(R.string.confirm), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                //Validate the string
-                String text = input.getText().toString();
-                if (text.matches("[a-zA-Z0-9]+")) {
-                    mListener.onResult(text);
-                } else {
-                    mListener.onResult(null);
-                }
+                mListener.onResult(input.getText().toString());
+                dialogInterface.dismiss();
             }
         });
         builder.setNegativeButton(ctx.getString(R.string.cancel), new DialogInterface.OnClickListener() {

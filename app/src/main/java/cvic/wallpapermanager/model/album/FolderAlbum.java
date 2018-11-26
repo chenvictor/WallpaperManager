@@ -47,7 +47,7 @@ public class FolderAlbum extends Album {
             }
             Folder search = iterator.next();
             if (index < search.size()) {
-                return search.getImage(index);
+                return search.getImage(index).getFile();
             }
             index -= search.size();
         }

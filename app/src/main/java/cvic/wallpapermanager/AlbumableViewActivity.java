@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import java.io.File;
 
+import cvic.wallpapermanager.dialogs.LoadingDialog;
 import cvic.wallpapermanager.model.albumable.Albumable;
 import cvic.wallpapermanager.model.albumable.Folder;
 import cvic.wallpapermanager.model.albumable.FolderManager;
@@ -17,11 +18,13 @@ import cvic.wallpapermanager.model.albumable.TagManager;
 import cvic.wallpapermanager.tasks.AddImagesTask;
 import cvic.wallpapermanager.ui.MultiSelectImageAdapter;
 
-public class AlbumablePreviewActivity extends MultiSelectImageActivity implements AddImagesTask.TaskListener {
+public class AlbumableViewActivity extends MultiSelectImageActivity implements AddImagesTask.TaskListener {
 
     private static final String TAG = "cvic.wpm.apa";
 
     private Albumable album;
+
+    private LoadingDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
                 Toast.makeText(this, "Invalid ID Provided", Toast.LENGTH_SHORT).show();
                 finish();
         }
+        loadingDialog = new LoadingDialog(AlbumableViewActivity.this, "Adding Images", 0);
         super.onCreate(savedInstanceState);
     }
 
@@ -56,8 +60,12 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
         menu.add("Add Images").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                album.addImage(AlbumablePreviewActivity.this);
-                return true;
+                if (album.addImagesActivityClass() != null) {
+                    Intent intent = new Intent(AlbumableViewActivity.this, album.addImagesActivityClass());
+                    startActivityForResult(intent, Albumable.PICK_IMAGE);
+                    return true;
+                }
+                return false;
             }
         });
     }
@@ -68,11 +76,9 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
             @SuppressWarnings("ResultOfMethodCallIgnored")
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-                for (File file : mAdapter.getSelections()) {
-                    file.delete();
-                }
-                album.refresh();
-                mAdapter.flushCache();
+//                for (File file : mAdapter.getSelections()) {
+//                    file.delete();
+//                } // TODO
                 mAdapter.clearSelections();
                 return false;
             }
@@ -102,8 +108,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
     private void addImages(Intent data) {
         String[] filesToAdd = data.getStringArrayExtra(SelectImagesActivity.EXTRA_IMAGES);
         Log.i(TAG, "Files to add: " + filesToAdd.length);
-        AddImagesTask task = new AddImagesTask(this, ((Folder) album).getFile());
-        task.execute(filesToAdd);
+        new AddImagesTask(this, ((Folder) album), filesToAdd).execute();
     }
 
     @Override
@@ -114,19 +119,21 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
     }
 
     @Override
-    public void onTaskStarted() {
-        setLoading("Adding Images");
+    public void onTaskStarted(int maxImages) {
+        loadingDialog.show("Adding Images", maxImages);
+        Log.i(TAG, "adding images");
     }
 
     @Override
-    public void onProgress(String textToShow) {
-        updateLoading(textToShow);
+    public void onProgress() {
+        Log.i(TAG, "progress");
+        loadingDialog.increment();
     }
 
     @Override
     public void onTaskComplete() {
-        doneLoading();
-        album.refresh();
+        Log.i(TAG, "done");
+        loadingDialog.dismiss();
         mAdapter.notifyDataSetChanged();
         assert (getSupportActionBar() != null);
         getSupportActionBar().setTitle(getDefaultTitle());
@@ -136,7 +143,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
 
         private Albumable mAlbum;
 
-        ImageAdapter(AlbumablePreviewActivity ctx, Albumable album) {
+        ImageAdapter(AlbumableViewActivity ctx, Albumable album) {
             super(ctx, ctx, false);
             mAlbum = album;
         }
@@ -148,7 +155,7 @@ public class AlbumablePreviewActivity extends MultiSelectImageActivity implement
 
         @Override
         public File getFile(int i) {
-            return mAlbum.getImage(i);
+            return mAlbum.getImage(i).getFile();
         }
 
         @Override

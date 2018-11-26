@@ -37,7 +37,7 @@ public class BitmapWorkerTask extends AsyncTask<Void, Void, Bitmap> {
     @Override
     protected void onPostExecute(Bitmap bitmap) {
         if (mListener != null) {
-            mListener.onTaskComplete(requestId, bitmap);
+            mListener.onTaskComplete(mFile, requestId, bitmap);
         }
     }
 
@@ -50,7 +50,7 @@ public class BitmapWorkerTask extends AsyncTask<Void, Void, Bitmap> {
 
     public interface TaskListener {
 
-        void onTaskComplete(int requestId, Bitmap bitmap);
+        void onTaskComplete(File file, int requestId, Bitmap bitmap);
 
         void onError(int requestId);
 

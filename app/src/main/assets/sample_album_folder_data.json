@@ -1,0 +1,9 @@
+{
+  "key_type": "val_folder",
+  "key_folders":
+    [
+      "folder1",
+      "folder2"
+    ],
+  "desc": "Album data for a folder album. Entries in the 'key_folders' array are the folders whose images are included in the album."
+}

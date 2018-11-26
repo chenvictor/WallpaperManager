@@ -16,25 +16,26 @@ import java.io.InputStreamReader;
 
 public class JSONUtils {
 
-    public static JSONObject getJSON(String path) throws FileNotFoundException{
-        try {
-            File file = new File(path);
-            String data = readString(file);
-            return new JSONObject(data);
-        } catch (JSONException e) {
-            return null;
-        }
+    public static JSONObject getJSON(File file) throws FileNotFoundException, JSONException {
+        return new JSONObject(readString(file));
     }
 
-    public static boolean writeJSON(String path, JSONObject data) {
+    public static JSONObject getJSON(String path) throws FileNotFoundException, JSONException{
+        return getJSON(new File(path));
+    }
+
+    public static boolean writeJSON(File file, JSONObject data) {
         try {
-            File file = new File(path);
             writeString(file, data.toString(0));
             return true;
         } catch (JSONException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public static boolean writeJSON(String path, JSONObject data) {
+        return writeJSON(new File(path), data);
     }
 
     private static String readString(File file) throws FileNotFoundException {

@@ -4,46 +4,41 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
-import cvic.wallpapermanager.model.albumable.Albumable;
 import cvic.wallpapermanager.model.albumable.Folder;
+import cvic.wallpapermanager.model.albumable.FolderManager;
 import cvic.wallpapermanager.utils.FilterUtils;
 
-public class FetchFolderTask extends AsyncTask<String, Void, List<Albumable>> {
+public class FetchFolderTask extends AsyncTask<Void, Void, Void> {
 
-    private TaskListener mListener;
+    private static final String TAG = "cvic.wpm.fft";
 
-    public FetchFolderTask (@NonNull TaskListener listener) {
-        mListener = listener;
+    private final TaskListener listener;
+    private final File root;
+
+    public FetchFolderTask (@NonNull TaskListener listener, File root) {
+        this.listener = listener;
+        this.root = root;
     }
 
     @Override
-    protected List<Albumable> doInBackground(String... strings) {
-        if (strings.length != 1) {
-            cancel(true);
-            return null;
+    protected Void doInBackground(Void... unused) {
+        FolderManager manager = FolderManager.getInstance();
+        for (File dir : root.listFiles(FilterUtils.get(FilterUtils.FOLDER_EMPTY))) {
+            Folder folder = new Folder(dir);
+            manager.addFolder(folder);
         }
-        File root = new File(strings[0]);
-        List<Albumable> list = new ArrayList<>();
-//        if (FilterUtils.containsImages(root)) {
-//            list.add(new Folder(root, true));
-//        }
-        for (File dir : root.listFiles(FilterUtils.get(FilterUtils.FOLDER))) {
-            list.add(new Folder(dir));
-        }
-        return list;
+        return null;
     }
 
     @Override
-    protected void onPostExecute(List<Albumable> folders) {
-        mListener.onFoldersFetched(folders);
+    protected void onPostExecute(Void unused) {
+        listener.onFoldersFetched();
     }
 
     public interface TaskListener {
 
-        void onFoldersFetched(List<Albumable> folders);
+        void onFoldersFetched();
 
     }
 

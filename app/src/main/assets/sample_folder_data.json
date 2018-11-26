@@ -1,0 +1,18 @@
+{
+  "key_images":
+    [
+      {
+        "key_img_name": "name.jpg",
+        "key_img_tags": [
+          "tag1", "tag5"
+        ]
+      },
+      {
+        "key_img_name": "name4.png",
+        "key_img_tags": [
+          "tag1", "tag2"
+        ]
+      }
+    ],
+  "desc": "Image tag data containing all images in the folder and its tags. Untagged images can be excluded."
+}

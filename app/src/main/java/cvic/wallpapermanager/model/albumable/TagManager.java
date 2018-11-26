@@ -1,9 +1,23 @@
 package cvic.wallpapermanager.model.albumable;
 
+import android.support.annotation.NonNull;
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-public class TagManager {
+import cvic.wallpapermanager.JSON;
+import cvic.wallpapermanager.utils.JSONUtils;
+
+public class TagManager implements Iterable<Tag>{
+
+    private static final String TAG = "cvic.wpm.tagm";
 
     /**
      * Singleton Pattern
@@ -21,13 +35,7 @@ public class TagManager {
 
     private TagManager() {
         tags = new ArrayList<>();
-    }
-
-    void addTag(int idx, Tag tag) {
-        tags.add(idx, tag);
-        for (int i = idx; i < tags.size(); i++) {
-            tags.get(i).setId(i);
-        }
+        addTag(new DefaultTag());
     }
 
     public void addTag(Tag tag) {
@@ -36,7 +44,7 @@ public class TagManager {
         }
     }
 
-    boolean hasTag(String name) {
+    public boolean hasTag(String name) {
         for (Tag tag : tags) {
             if (tag.getName().equals(name)) {
                 return true;
@@ -45,25 +53,16 @@ public class TagManager {
         return false;
     }
 
-    void removeTag(Tag tag) {
+    public void removeTag(Tag tag) {
         if (tags.remove(tag)) {
-            for (int idx = 0; idx < tags.size(); idx++) {
-                tags.get(idx).setId(idx);
-            }
             tag.setId(-1);
         }
     }
 
     public void removeTag(int idx) {
-        if (idx < tags.size()) {
+        if (idx > 0 && idx < tags.size()) {
             Tag tag = tags.remove(idx);
             tag.setId(-1);
-        }
-    }
-
-    public void initialize() {
-        for (Folder folder : FolderManager.getInstance()) {
-            addTag(new FolderTag(folder));
         }
     }
 
@@ -77,7 +76,9 @@ public class TagManager {
                 return tag;
             }
         }
-        return null;
+        Tag newTag = new Tag(name);
+        tags.add(newTag);
+        return newTag;
     }
 
     public int size() {
@@ -90,5 +91,39 @@ public class TagManager {
             names[i] = tags.get(i).getName();
         }
         return names;
+    }
+
+    public void clear() {
+        tags.clear();
+        addTag(new DefaultTag());
+    }
+
+    @NonNull
+    @Override
+    public Iterator<Tag> iterator() {
+        return tags.iterator();
+    }
+
+    public void saveJson(File file) {
+        JSONObject object = new JSONObject();
+        JSONArray array = new JSONArray();
+        for (int i = 1; i < tags.size(); i++) {
+            //Starting at 1 to exclude DefaultTag
+            Tag tag = tags.get(i);
+            array.put(tag.getName());
+        }
+        try {
+            object.put(JSON.KEY_TAGS, array);
+            JSONUtils.writeJSON(file, object);
+            Log.i(TAG, "Saved tags to: " + file.getAbsolutePath());
+        } catch (JSONException e) {
+            Log.i(TAG, "Error saving to json");
+            e.printStackTrace();
+        }
+
+    }
+
+    public Tag getDefault() {
+        return getInstance().getTag(0);
     }
 }
