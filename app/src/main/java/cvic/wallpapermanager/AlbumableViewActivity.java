@@ -65,6 +65,7 @@ public class AlbumableViewActivity extends MultiSelectImageActivity implements A
                     startActivityForResult(intent, Albumable.PICK_IMAGE);
                     return true;
                 }
+                Log.v(TAG, "Album has no AddImageActivityClass!");
                 return false;
             }
         });
@@ -76,9 +77,7 @@ public class AlbumableViewActivity extends MultiSelectImageActivity implements A
             @SuppressWarnings("ResultOfMethodCallIgnored")
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
-//                for (File file : mAdapter.getSelections()) {
-//                    file.delete();
-//                } // TODO
+                // TODO
                 mAdapter.clearSelections();
                 return false;
             }
@@ -108,7 +107,7 @@ public class AlbumableViewActivity extends MultiSelectImageActivity implements A
     private void addImages(Intent data) {
         String[] filesToAdd = data.getStringArrayExtra(SelectImagesActivity.EXTRA_IMAGES);
         Log.i(TAG, "Files to add: " + filesToAdd.length);
-        new AddImagesTask(this, ((Folder) album), filesToAdd).execute();
+        new AddImagesTask(this, ((Folder) album), loadingDialog, filesToAdd).execute();
     }
 
     @Override
@@ -119,21 +118,8 @@ public class AlbumableViewActivity extends MultiSelectImageActivity implements A
     }
 
     @Override
-    public void onTaskStarted(int maxImages) {
-        loadingDialog.show("Adding Images", maxImages);
-        Log.i(TAG, "adding images");
-    }
-
-    @Override
-    public void onProgress() {
-        Log.i(TAG, "progress");
-        loadingDialog.increment();
-    }
-
-    @Override
     public void onTaskComplete() {
         Log.i(TAG, "done");
-        loadingDialog.dismiss();
         mAdapter.notifyDataSetChanged();
         assert (getSupportActionBar() != null);
         getSupportActionBar().setTitle(getDefaultTitle());

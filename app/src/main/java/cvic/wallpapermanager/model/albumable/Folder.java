@@ -148,7 +148,9 @@ public class Folder extends Albumable {
                 Log.i(TAG, "tag.json deleted");
             }
             directory.delete();
-            mListener.onAlbumDelete(this);
+            for (AlbumChangeListener l : listeners) {
+                l.onAlbumDelete(this);
+            }
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
             builder.setTitle(toString()).setMessage("This folder contains images. Transfer them to another folder?");
@@ -181,7 +183,9 @@ public class Folder extends Albumable {
                         file.delete();
                     }
                     directory.delete();
-                    mListener.onAlbumDelete(Folder.this);
+                    for (AlbumChangeListener l : listeners) {
+                        l.onAlbumDelete(Folder.this);
+                    }
                     dialogInterface.dismiss();
                 }
             });
@@ -203,7 +207,9 @@ public class Folder extends Albumable {
             Log.i(TAG, "tag.json deleted");
         }
         if(directory.delete()) {
-            mListener.onAlbumDelete(this);
+            for (AlbumChangeListener l : listeners) {
+                l.onAlbumDelete(this);
+            }
         } else {
             Log.e(TAG, "Failed to delete folder after moving contents!");
         }

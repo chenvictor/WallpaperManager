@@ -82,6 +82,7 @@ public class BitmapHandler implements IntervalHandler.IntervalListener {
         setBlur(prefs.getBoolean(ctx.getString(R.string.key_wallpaper_lock_blur), false));
         setPosition(prefs.getInt(ctx.getString(R.string.key_position),0));
         intervalHandler = new IntervalHandler(this);
+        randomOrder = prefs.getBoolean(ctx.getString(R.string.key_random_order_enabled), false);
         setInterval(prefs);
         initCyclers(prefs.getBoolean(ctx.getString(R.string.key_wallpaper_lock_use_home), false), prefs);
 

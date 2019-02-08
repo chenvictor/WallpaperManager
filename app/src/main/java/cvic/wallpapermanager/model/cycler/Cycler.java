@@ -4,35 +4,38 @@ import android.graphics.Bitmap;
 
 import java.util.Random;
 
-public abstract class Cycler {
+import cvic.wallpapermanager.utils.DisplayUtils;
+
+public class Cycler {
 
     private static final int DEFAULT_WIDTH = 500, DEFAULT_HEIGHT = 1000;
 
     protected int width = DEFAULT_WIDTH;
     protected int height = DEFAULT_HEIGHT;
-    Bitmap current;
+    private Bitmap current;
     private Random random;
+    private int index;
+    private String[] paths;
 
-    Cycler() {
+    Cycler(String[] paths) {
         random = new Random(System.currentTimeMillis());
+        this.paths = paths;
+        index = 0;
+        recalculate();
     }
 
-    public final Bitmap getBitmap() {
+    public Bitmap getBitmap() {
         if (current != null && current.isRecycled()) {
             return null;
         }
         return current;
     }
 
-    public final void cycle(boolean random) {
-        doCycle(random);
-    }
-
     /**
      * Method call to recycle any bitmaps
      * in the cycler before deletion
      */
-    public final void recycle() {
+    public void recycle() {
         current.recycle();
     }
 
@@ -41,7 +44,7 @@ public abstract class Cycler {
      * @param width     requested width
      * @param height    requested height
      */
-    public final void setDimens(int width, int height) {
+    public void setDimens(int width, int height) {
         if (this.width == width && this.height == height) {
             return;
         }
@@ -50,25 +53,54 @@ public abstract class Cycler {
         recalculate();
     }
 
-    /**
-     * Helper function subclasses can call to get a random number
-     * @param bound     upper bound
-     * @return          a number in the range [0, bound)
-     */
-    final int getRandom(int bound) {
-        return random.nextInt(bound);
+    public void cycle(boolean random) {
+        if (paths.length == 1) {
+            return;
+        }
+        if (random) {
+            index = randomIndex();
+        } else {
+            index = nextIndex();
+        }
+        assert (current != null);
+        current.recycle();
+        recalculate();
     }
-
-    abstract void doCycle(boolean random);
 
     /**
      * Force Cycler to recalculate current bitmaps
      */
-    abstract void recalculate();
+    protected void recalculate() {
+        if (current != null) {
+            current.recycle();
+        }
+        current = DisplayUtils.decodeBitmap(paths[index], width, height);
+    }
 
     /**
      * Whether or not the cycler can cycle
      * @return      true if can cycle, i.e. number of images > 1
      */
-    public abstract boolean canCycle();
+    public boolean canCycle() {
+        return paths.length > 1;
+    }
+
+    private int nextIndex() {
+        int next = index + 1;
+        return next % paths.length;
+    }
+
+    /**
+     * Returns a random new valid index,
+     * different create the current index
+     * @return  random new index [0, paths.length)
+     */
+    private int randomIndex() {
+        // -1 because we don't want to select the current image as the random one
+        int newIndex = random.nextInt(paths.length - 1);
+        if (newIndex == index) {
+            return newIndex + 1;
+        }
+        return newIndex;
+    }
 }

@@ -16,11 +16,13 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import cvic.wallpapermanager.ImageViewHolder;
 import cvic.wallpapermanager.R;
+import cvic.wallpapermanager.utils.BitmapWrapper;
 import cvic.wallpapermanager.utils.FilterUtils;
 import cvic.wallpapermanager.utils.ImageCache;
 
-public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<MultiSelectImageAdapter.ViewHolder> implements ImageCache.CacheListener {
+public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<ImageViewHolder> implements ImageCache.CacheListener {
 
     private final String TAG = "cvic.wpm.msia";
 
@@ -49,7 +51,14 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         this.showName = showName;
         multiselect = false;
         selections = new HashSet<>();
-        cache = new ImageCache(this);
+        cache = ImageCache.getMainInstance();
+        cache.addListener(this);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        cache.removeListener(this);
     }
 
     public final void setSize(int size) {
@@ -58,9 +67,9 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
 
     @NonNull
     @Override
-    public final ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+    public final ImageViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.layout_preview_albumable, viewGroup, false);
-        final ViewHolder holder = new ViewHolder(view);
+        final ImageViewHolder holder = new ImageViewHolder(view);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -77,7 +86,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
     }
 
     @Override
-    public void onViewRecycled(@NonNull ViewHolder holder) {
+    public void onViewRecycled(@NonNull ImageViewHolder holder) {
         super.onViewRecycled(holder);
         Log.i(TAG, "Recycling: " + holder.getAdapterPosition());
         if (holder.getAdapterPosition() >= 0) {
@@ -86,10 +95,10 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
     }
 
     @Override
-    public final void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
-        ImageView image = viewHolder.image;
-        TextView label = viewHolder.label;
-        Group overlay = viewHolder.overlay;
+    public final void onBindViewHolder(@NonNull ImageViewHolder viewHolder, int i) {
+        ImageView image = viewHolder.getImage();
+        TextView label = viewHolder.getLabel();
+        Group overlay = viewHolder.getOverlay();
         File file = getFile(i);
         if (file.isDirectory()) {
             image.setImageResource(R.drawable.folder_outline);
@@ -102,7 +111,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
             } else {
                 overlay.setVisibility(View.INVISIBLE);
             }
-            image.setImageBitmap(cache.requestImage(file, i, size, size));
+            viewHolder.bindBitmap(cache.requestImage(file, i, size, size));
             if (showName) {
                 label.setText(file.getName());
                 label.setVisibility(View.VISIBLE);
@@ -112,7 +121,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         }
     }
 
-    private void onClick(ViewHolder holder) {
+    private void onClick(ImageViewHolder holder) {
         int idx = holder.getAdapterPosition();
         File file = getFile(idx);
         if (file.isDirectory()) {
@@ -136,7 +145,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
         }
     }
 
-    private boolean onLongClick(ViewHolder holder) {
+    private boolean onLongClick(ImageViewHolder holder) {
         int idx = holder.getAdapterPosition();
         File file = getFile(idx);
         if (file.isDirectory()) {
@@ -197,7 +206,7 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
     }
 
     @Override
-    public final void onBitmapAvailable(File file, int requestId, Bitmap bitmap) {
+    public final void onBitmapAvailable(File file, int requestId, BitmapWrapper bitmap) {
         notifyItemChanged(requestId);
     }
 
@@ -210,20 +219,6 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Multi
     }
     private void onSelectionChanged() {
         listener.onSelectionChanged(selections);
-    }
-
-    static class ViewHolder extends RecyclerView.ViewHolder {
-
-        ImageView image;
-        TextView label;
-        Group overlay;
-
-        ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            image = itemView.findViewById(R.id.grid_albumable_image);
-            label = itemView.findViewById(R.id.grid_albumable_label);
-            overlay = itemView.findViewById(R.id.checked_overlay);
-        }
     }
 
     public interface MultiSelectListener {

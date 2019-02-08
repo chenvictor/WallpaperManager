@@ -150,5 +150,6 @@ public class WallpaperManager extends AppCompatActivity implements FetchFolderTa
         //Save tag json
         TagManager.getInstance().saveJson(new File(externalFilesRoot, JSON.FILE_TAGS));
         FolderManager.getInstance().saveJson();
+        mWallpaper.saveAlbums();
     }
 }

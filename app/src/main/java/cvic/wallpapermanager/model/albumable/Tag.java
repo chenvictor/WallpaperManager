@@ -93,7 +93,9 @@ public class Tag extends Albumable {
         }
         untagged.imageSet.addAll(imageSet);
         untagged.imageList.addAll(imageSet);
-        mListener.onAlbumDelete(this);
+        for (AlbumChangeListener l : listeners) {
+            l.onAlbumDelete(this);
+        }
     }
 
     public boolean hasImage(ImageFile image) {
@@ -123,7 +125,6 @@ public class Tag extends Albumable {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(super.hashCode(), name);
     }
 }

@@ -38,4 +38,10 @@ public abstract class Album {
      */
     public abstract JSONObject jsonify();
 
+    /*
+      @return  true if the album was modified in some way.
+     *  eg. (image remove, tag name changed, folder deleted)
+     */
+    //public abstract boolean changed();
+
 }

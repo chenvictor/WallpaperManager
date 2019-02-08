@@ -4,10 +4,11 @@ import android.os.AsyncTask;
 
 import java.io.File;
 
+import cvic.wallpapermanager.dialogs.LoadingDialog;
 import cvic.wallpapermanager.model.ImageFile;
 import cvic.wallpapermanager.model.albumable.Folder;
 
-public class AddImagesTask extends AsyncTask<Void, Integer, Void> {
+public class AddImagesTask extends ShowProgressTask<Void, Integer, Void> {
 
     private static final String TAG = "cvic.wpm.ait";
 
@@ -15,16 +16,11 @@ public class AddImagesTask extends AsyncTask<Void, Integer, Void> {
     private Folder destination;
     private String[] paths;
 
-    public AddImagesTask (TaskListener listener, Folder destination, String... paths) {
+    public AddImagesTask (TaskListener listener, Folder destination, LoadingDialog dialog, String... paths) {
+        super(dialog, paths.length, "Adding Images");
         this.listener = listener;
         this.destination = destination;
         this.paths = paths;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        listener.onTaskStarted(paths.length);
     }
 
     @Override
@@ -40,12 +36,6 @@ public class AddImagesTask extends AsyncTask<Void, Integer, Void> {
         return null;
     }
 
-    @Override
-    protected void onProgressUpdate(Integer... values) {
-        super.onProgressUpdate(values);
-        listener.onProgress();
-    }
-
     private void addFile(File file) {
         ImageFile image = new ImageFile(null, file);
         image.copyTo(destination);
@@ -59,11 +49,7 @@ public class AddImagesTask extends AsyncTask<Void, Integer, Void> {
     }
 
     public interface TaskListener {
-
-        void onTaskStarted(int maxProgress);
-        void onProgress();
         void onTaskComplete();
-
     }
 
 }

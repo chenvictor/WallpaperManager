@@ -22,11 +22,22 @@ public class ImageFile {
 
     private Set<Tag> tags;
 
+    private Set<ImageFileListener> listeners;
+
     public ImageFile(Folder folder, File file) {
         this.folder = folder;
         this.file = file;
         tags = new HashSet<>();
+        listeners = new HashSet<>();
         addTag(TagManager.getInstance().getDefault());    // Image is untagged by default
+    }
+
+    public synchronized void addListener(ImageFileListener listener) {
+        listeners.add(listener);
+    }
+
+    public synchronized void remove(ImageFileListener listener) {
+        listeners.remove(listener);
     }
 
     /**
@@ -40,6 +51,9 @@ public class ImageFile {
             ImageFileManager.getInstance().fileMoved(file, dest);   //Notify the manager
             file = dest;
             target.addImage(this);
+            for (ImageFileListener l : listeners) {
+                l.onMoved();
+            }
             Log.i(TAG, "File copied. Name: " + file.getName());
         } else {
             Log.i(TAG, "Failed to copy file!");
@@ -60,6 +74,9 @@ public class ImageFile {
             folder = target;
             ImageFileManager.getInstance().fileMoved(file, dest);   //Notify the manager
             file = dest;
+            for (ImageFileListener l : listeners) {
+                l.onMoved();
+            }
             Log.i(TAG, "File moved. Name: " + file.getName());
         } else {
             Log.i(TAG, "Failed to move file!");
@@ -115,6 +132,14 @@ public class ImageFile {
         return tags.size();
     }
 
+    public void delete() {
+        if (file.delete()) {
+            for (ImageFileListener l : listeners) {
+                l.onDelete();
+            }
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -136,4 +161,10 @@ public class ImageFile {
         ifm.addImage(this);
         Log.i(TAG, "Adding image to manager");
     }
+
+    public interface ImageFileListener {
+        void onDelete();
+        void onMoved();
+    }
+
 }

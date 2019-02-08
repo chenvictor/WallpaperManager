@@ -44,6 +44,7 @@ import cvic.wallpapermanager.model.album.FolderAlbum;
 import cvic.wallpapermanager.model.album.ImageAlbum;
 import cvic.wallpapermanager.model.album.TagAlbum;
 import cvic.wallpapermanager.service.WPMService;
+import cvic.wallpapermanager.utils.BitmapWrapper;
 import cvic.wallpapermanager.utils.ImageCache;
 
 import static android.app.Activity.RESULT_OK;
@@ -93,8 +94,14 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
 
     public WallpaperFragment() {
         // Required empty public constructor
-        cache = new ImageCache(this, 2);
-        setRetainInstance(true);
+        cache = new ImageCache(2);  //personal image cache of size 2
+        cache.addListener(this);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        cache.removeListener(this);
     }
 
     @Override
@@ -194,12 +201,12 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         mLockAlbumDesc.setText(lockAlbum.getName());
         cache.flush();  //
         if (homeAlbum.getPreview() != null) {
-            mHomeAlbumPreview.setImageBitmap(cache.requestImage(homeAlbum.getPreview(), 0, mHomeAlbumPreview.getMeasuredWidth(), mHomeAlbumPreview.getMeasuredHeight()));
+            mHomeAlbumPreview.setImageBitmap(cache.requestImage(homeAlbum.getPreview(), 0, mHomeAlbumPreview.getMeasuredWidth(), mHomeAlbumPreview.getMeasuredHeight()).getBitmap());
         } else {
             mHomeAlbumPreview.setImageBitmap(null);
         }
         if (lockAlbum.getPreview() != null) {
-            mLockAlbumPreview.setImageBitmap(cache.requestImage(lockAlbum.getPreview(), 1, mLockAlbumPreview.getMeasuredWidth(), mLockAlbumPreview.getMeasuredHeight()));
+            mLockAlbumPreview.setImageBitmap(cache.requestImage(lockAlbum.getPreview(), 1, mLockAlbumPreview.getMeasuredWidth(), mLockAlbumPreview.getMeasuredHeight()).getBitmap());
         } else {
             mLockAlbumPreview.setImageBitmap(null);
         }
@@ -425,17 +432,17 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     }
 
     @Override
-    public void onBitmapAvailable(File file, int requestId, Bitmap bitmap) {
+    public void onBitmapAvailable(File file, int requestId, BitmapWrapper bitmap) {
         switch (requestId) {
             case 0:
                 //home
                 Log.i(TAG, "Home bitmap loaded");
-                mHomeAlbumPreview.setImageBitmap(bitmap);
+                mHomeAlbumPreview.setImageBitmap(bitmap.getBitmap());
                 break;
             case 1:
                 //lock
                 Log.i(TAG, "Lock bitmap loaded");
-                mLockAlbumPreview.setImageBitmap(bitmap);
+                mLockAlbumPreview.setImageBitmap(bitmap.getBitmap());
                 break;
         }
     }
@@ -489,5 +496,10 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
         } finally {
             editor.apply();
         }
+    }
+
+
+    public void saveAlbums() {
+
     }
 }

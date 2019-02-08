@@ -1,5 +1,6 @@
 package cvic.wallpapermanager.model.album;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -18,9 +19,9 @@ public class AlbumFactory {
             String type = object.getString(JSON.KEY_TYPE);
             switch (type) {
                 case JSON.VALUE_FOLDER:
-                    //return fromFolder(object);
+                    return fromFolder(object);
                 case JSON.VALUE_TAG:
-                    //return fromTag(object);
+                    return fromTag(object);
                 case JSON.VALUE_IMAGE:
                     return fromImage(object);
             }
@@ -36,16 +37,19 @@ public class AlbumFactory {
         if (array.length() == 0) {
             throw new IllegalArgumentException("No folders in the album!");
         }
-        String[] folders = new String[array.length()];
-        for (int i = 0; i < array.length(); i++) {
-            folders[i] = array.getString(i);
-        }
+        String[] folders = getStrings(array);
         return new FolderAlbum(folders);
     }
 
-    private static Album fromTag(JSONObject object) {
-        // TODO
-        return null;
+    private static Album fromTag(JSONObject object) throws JSONException {
+        JSONArray include = object.getJSONArray(JSON.KEY_TAG_INCLUDE);
+        if (include.length() == 0) {
+            throw new IllegalArgumentException("No included tags in the album!");
+        }
+        JSONArray exclude = object.getJSONArray(JSON.KEY_TAG_EXCLUDE);
+        String[] includeArray = getStrings(include);
+        String[] excludeArray = getStrings(exclude);
+        return new TagAlbum(includeArray, excludeArray);
     }
 
     private static Album fromImage(JSONObject object) throws JSONException {
@@ -53,11 +57,17 @@ public class AlbumFactory {
         if (array.length() == 0) {
             throw new IllegalArgumentException("No images in the album!");
         }
-        String[] paths = new String[array.length()];
-        for (int i = 0; i < array.length(); i++) {
-            paths[i] = array.getString(i);
-        }
+        String[] paths = getStrings(array);
         return new ImageAlbum(paths);
+    }
+
+    @NonNull
+    private static String[] getStrings(JSONArray include) throws JSONException {
+        String[] includeArray = new String[include.length()];
+        for (int i = 0; i < include.length(); i++) {
+            includeArray[i] = include.getString(i);
+        }
+        return includeArray;
     }
 
 }

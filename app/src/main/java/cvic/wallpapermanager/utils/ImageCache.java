@@ -1,13 +1,16 @@
 package cvic.wallpapermanager.utils;
 
-import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import cvic.wallpapermanager.model.ImageFile;
 import cvic.wallpapermanager.tasks.BitmapWorkerTask;
@@ -17,25 +20,38 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     private static final String TAG = "cvic.wpm.img_cache";
     private static final int DEFAULT_CACHE_SIZE = 16;
 
-    private Bitmap mPlaceholder;
-    private LruCache<File, Bitmap> cache;
-    private CacheListener mListener;
+    private static final ImageCache mainInstance = new ImageCache(DEFAULT_CACHE_SIZE);
+
+    private BitmapWrapper mPlaceholder;
+    private LruCache<File, BitmapWrapper> cache;
+    private Set<CacheListener> listeners;
     private Map<File, BitmapWorkerTask> requests;
 
-    @SuppressLint("UseSparseArrays")
-    public ImageCache(CacheListener listener, int cacheSize) {
-        mPlaceholder = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
-        mListener = listener;
-        cache = new LruCache<>(cacheSize);
+    public static ImageCache getMainInstance() {
+        return mainInstance;
+    }
+
+    public synchronized void addListener(CacheListener listener) {
+        listeners.add(listener);
+    }
+
+    public synchronized void removeListener(CacheListener listener) {
+        listeners.remove(listener);
+    }
+
+    public ImageCache(int cacheSize) {
+        listeners = new HashSet<>();
+        mPlaceholder = new BitmapWrapper(Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)) {
+            @Override
+            public void incRef() {}
+            @Override
+            public void decRef() {}
+        };
+        cache = new BitmapCache(cacheSize);
         requests = new HashMap<>();
     }
 
-    @SuppressLint("UseSparseArrays")
-    public ImageCache(CacheListener listener) {
-        this(listener, DEFAULT_CACHE_SIZE);
-    }
-
-    public Bitmap requestImage (ImageFile file, int requestId, int width, int height) {
+    public BitmapWrapper requestImage (ImageFile file, int requestId, int width, int height) {
         if (file == null) {
             return mPlaceholder;
         }
@@ -53,12 +69,13 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
      *              and a placeholder image is returned.
      *              If the file is null, the placeholder image will be returned.
      */
-    public Bitmap requestImage (File file, int requestId, int width, int height) {
+    public BitmapWrapper requestImage (File file, int requestId, int width, int height) {
+
         if (file == null) {
             return mPlaceholder;
         }
         //Log.i(TAG, "Image: " + file.toString() + " requested.");
-        Bitmap cached = cache.get(file);
+        BitmapWrapper cached = cache.get(file);
         if (cached != null) {
             return cached;
         } else {
@@ -99,9 +116,12 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
     @Override
     public void onTaskComplete(File file, int requestId, Bitmap bitmap) {
         if (bitmap != null) {
-            cache.put(file, bitmap);
-            if (mListener != null) {
-                mListener.onBitmapAvailable(file, requestId, bitmap);
+            BitmapWrapper wrapped = new BitmapWrapper(bitmap);
+            cache.put(file, wrapped);
+            synchronized (this) {
+                for (CacheListener listener : listeners) {
+                    listener.onBitmapAvailable(file, requestId, wrapped);
+                }
             }
             requests.remove(file);
         }
@@ -112,9 +132,28 @@ public class ImageCache implements BitmapWorkerTask.TaskListener{
         Log.i(TAG, "Error loading bitmap");
     }
 
+    private class BitmapCache extends LruCache<File, BitmapWrapper> {
+
+        private BitmapCache(int maxSize) {
+            super(maxSize);
+        }
+
+        @Override
+        protected void entryRemoved(boolean evicted, @NonNull File key, @NonNull BitmapWrapper oldValue, @Nullable BitmapWrapper newValue) {
+            super.entryRemoved(evicted, key, oldValue, newValue);
+            oldValue.decRef();
+        }
+    }
+
     public interface CacheListener {
 
-        void onBitmapAvailable(File file, int requestId, Bitmap bitmap);
+        void onBitmapAvailable(File file, int requestId, BitmapWrapper bitmap);
+
+        /**
+         * Hashcode and equals must be implemented to add and remove listeners
+         */
+        boolean equals(Object o);
+        int hashCode();
 
     }
 }

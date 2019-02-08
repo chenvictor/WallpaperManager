@@ -19,15 +19,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import cvic.wallpapermanager.AlbumableViewActivity;
+import cvic.wallpapermanager.ImageViewHolder;
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.model.albumable.Albumable;
 import cvic.wallpapermanager.model.albumable.Folder;
 import cvic.wallpapermanager.model.albumable.FolderManager;
 import cvic.wallpapermanager.model.albumable.Tag;
 import cvic.wallpapermanager.model.albumable.TagManager;
+import cvic.wallpapermanager.utils.BitmapWrapper;
 import cvic.wallpapermanager.utils.ImageCache;
 
-public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, Albumable.AlbumChangeListener {
+public class AlbumAdapter extends Adapter<ImageViewHolder> implements ImageCache.CacheListener, Albumable.AlbumChangeListener {
 
     private static final String TAG = "cvic.wpm.a_a";
 
@@ -44,17 +46,24 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
     AlbumAdapter(AlbumsFragment fragment, int gridSize) {
         mFrag = fragment;
         mCtx = fragment.getContext();
-        mCache = new ImageCache(this);
+        mCache = ImageCache.getMainInstance();
+        mCache.addListener(this);
         size = gridSize;
         adapterPositionMap = new HashMap<>();
     }
 
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        mCache.removeListener(this);
+    }
+
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+    public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.layout_preview_albumable, viewGroup, false);
 
-        final ViewHolder holder = new ViewHolder(view);
+        final ImageViewHolder holder = new ImageViewHolder(view);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -92,16 +101,14 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int index) {
+    public void onBindViewHolder(@NonNull ImageViewHolder viewHolder, int index) {
         Albumable item = getItem(index);
         assert item != null;
         adapterPositionMap.put(item, index);
-        item.setListener(this);
-        View view = viewHolder.itemView;
-        ImageView preview = view.findViewById(R.id.grid_albumable_image);
-        TextView label = view.findViewById(R.id.grid_albumable_label);
+        item.addListener(this);
+        TextView label = viewHolder.getLabel();
         label.setText(mCtx.getResources().getQuantityString(R.plurals.folder_title_plural, item.size(), item.getName(), item.size()));
-        preview.setImageBitmap(mCache.requestImage(item.getPreview(), index, size, size));
+        viewHolder.bindBitmap(mCache.requestImage(item.getPreview(), index, size, size));
     }
 
     @Override
@@ -116,7 +123,7 @@ public class AlbumAdapter extends Adapter implements ImageCache.CacheListener, A
     }
 
     @Override
-    public void onBitmapAvailable(File file, int requestId, Bitmap bitmap) {
+    public void onBitmapAvailable(File file, int requestId, BitmapWrapper bitmap) {
         notifyItemChanged(requestId);
     }
 

@@ -4,13 +4,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import cvic.wallpapermanager.dialogs.ContextMenuDialog;
 import cvic.wallpapermanager.dialogs.TextInputDialog;
 import cvic.wallpapermanager.model.ImageFile;
 
-public abstract class Albumable implements TextInputDialog.ResultListener, Iterable<ImageFile>{
+public abstract class Albumable implements Iterable<ImageFile>{
 
     public static final String EXTRA_TYPE = "cvic.wpm.extra_album_type";
     public static final String EXTRA_ID = "cvic.wpm.extra_album_id";
@@ -27,16 +29,40 @@ public abstract class Albumable implements TextInputDialog.ResultListener, Itera
 
     private int id = -1;
 
-    AlbumChangeListener mListener;
+    protected Set<AlbumChangeListener> listeners;
 
-    public void setListener(AlbumChangeListener listener) {
-        mListener = listener;
+    public Albumable() {
+        listeners = new HashSet<>();
     }
 
-    public void onClick(Context ctx) {
-
+    /**
+     * Attach this to a listener
+     * @param listener  listener to attach
+     */
+    public final synchronized void addListener(AlbumChangeListener listener) {
+        listeners.add(listener);
     }
 
+    public final synchronized void removeListener(AlbumChangeListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
+     * Getters and settings for AlbumableManagers
+     * @param id    id to assign
+     */
+    final void setId(int id) {
+        this.id = id;
+    }
+    public final int getId() {
+        return this.id;
+    }
+
+    /**
+     * Handle a long click
+     * @param ctx   Context to pass
+     * @return      true if the click was handled, false otherwise
+     */
     public boolean onLongClick(Context ctx) {
         ContextMenuDialog menu = getContextMenu(ctx);
         if (menu != null) {
@@ -46,12 +72,31 @@ public abstract class Albumable implements TextInputDialog.ResultListener, Itera
         return false;
     }
 
+    /**
+     * Retrieves the context menu associated with this
+     * @param ctx   Context
+     * @return      ContextMenuDialog
+     */
     protected ContextMenuDialog getContextMenu(final Context ctx) {
         ContextMenuDialog dialog = new ContextMenuDialog(ctx, toString());
         dialog.addButton("Rename", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TextInputDialog renameDialog = new TextInputDialog(ctx, Albumable.this, "Rename", getName());
+                TextInputDialog renameDialog = new TextInputDialog(ctx, new TextInputDialog.ResultListener() {
+                    @Override
+                    public void onResult(String input) {
+                        int code = rename(input);
+                        if (code == RENAME_SUCCESS) {
+                            for (AlbumChangeListener listener : listeners) {
+                                listener.onAlbumRename(Albumable.this, input);
+                            }
+                        } else {
+                            for (AlbumChangeListener listener : listeners) {
+                                listener.onAlbumRenameFailed(Albumable.this, code);
+                            }
+                        }
+                    }
+                }, "Rename", getName());
                 renameDialog.show();
             }
         });
@@ -64,29 +109,6 @@ public abstract class Albumable implements TextInputDialog.ResultListener, Itera
         return dialog;
     }
 
-    @Override
-    public void onResult(String input) {
-        if (getName().equals(input)) {
-            return;
-        }
-        int code = rename(input);
-        if (mListener != null) {
-            if (code == RENAME_SUCCESS) {
-                mListener.onAlbumRename(this, input);
-            } else {
-                mListener.onAlbumRenameFailed(this, code);
-            }
-        }
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getId() {
-        return this.id;
-    }
-
     public abstract String getName();
     public abstract ImageFile getImage(int idx);
     public abstract int size();
@@ -95,6 +117,9 @@ public abstract class Albumable implements TextInputDialog.ResultListener, Itera
     public abstract void removeImage(ImageFile imageFile);
     public abstract void addImage(ImageFile imageFile);
 
+    /**
+     * Assign an ActivityClass to handle adding of images
+     */
     public abstract Class<? extends Activity> addImagesActivityClass();
 
     /**

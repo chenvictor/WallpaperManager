@@ -1,5 +1,7 @@
 package cvic.wallpapermanager.model.album;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import cvic.wallpapermanager.JSON;
 import cvic.wallpapermanager.model.ImageFile;
 import cvic.wallpapermanager.model.albumable.Tag;
 import cvic.wallpapermanager.model.albumable.TagManager;
@@ -79,23 +82,22 @@ public class TagAlbum extends Album {
 
     @Override
     public JSONObject jsonify() {
-        throw new RuntimeException("Stub!");
-//        JSONObject object = new JSONObject();
-//        try {
-//            object.put(JSON.KEY_TYPE, JSON.VALUE_TAG);
-//            JSONArray includeArray = new JSONArray();
-//            for (Tag t : include) {
-//                includeArray.put(t.getName());
-//            }
-//            object.put(JSON.KEY_TAG_INCLUDE, includeArray);
-//            JSONArray excludeArray = new JSONArray();
-//            for (Tag t : exclude) {
-//                excludeArray.put(t.getName());
-//            }
-//            object.put(JSON.KEY_TAG_EXCLUDE, excludeArray);
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//        return object;
+        JSONObject object = new JSONObject();
+        try {
+            object.put(JSON.KEY_TYPE, JSON.VALUE_TAG);
+            JSONArray includeArray = new JSONArray();
+            for (Tag t : include) {
+                includeArray.put(t.getName());
+            }
+            object.put(JSON.KEY_TAG_INCLUDE, includeArray);
+            JSONArray excludeArray = new JSONArray();
+            for (Tag t : exclude) {
+                excludeArray.put(t.getName());
+            }
+            object.put(JSON.KEY_TAG_EXCLUDE, excludeArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return object;
     }
 }
