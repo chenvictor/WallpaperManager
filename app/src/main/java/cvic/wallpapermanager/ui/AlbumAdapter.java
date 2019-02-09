@@ -2,7 +2,7 @@ package cvic.wallpapermanager.ui;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
@@ -10,11 +10,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
+import com.bumptech.glide.Glide;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,10 +26,8 @@ import cvic.wallpapermanager.model.albumable.Folder;
 import cvic.wallpapermanager.model.albumable.FolderManager;
 import cvic.wallpapermanager.model.albumable.Tag;
 import cvic.wallpapermanager.model.albumable.TagManager;
-import cvic.wallpapermanager.utils.BitmapWrapper;
-import cvic.wallpapermanager.utils.ImageCache;
 
-public class AlbumAdapter extends Adapter<ImageViewHolder> implements ImageCache.CacheListener, Albumable.AlbumChangeListener {
+public class AlbumAdapter extends Adapter<ImageViewHolder> implements Albumable.AlbumChangeListener {
 
     private static final String TAG = "cvic.wpm.a_a";
 
@@ -41,21 +39,12 @@ public class AlbumAdapter extends Adapter<ImageViewHolder> implements ImageCache
     private final Context mCtx;
 
     private Map<Albumable, Integer> adapterPositionMap;
-    private ImageCache mCache;
 
     AlbumAdapter(AlbumsFragment fragment, int gridSize) {
         mFrag = fragment;
         mCtx = fragment.getContext();
-        mCache = ImageCache.getMainInstance();
-        mCache.addListener(this);
         size = gridSize;
         adapterPositionMap = new HashMap<>();
-    }
-
-    @Override
-    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
-        super.onDetachedFromRecyclerView(recyclerView);
-        mCache.removeListener(this);
     }
 
     @NonNull
@@ -108,7 +97,7 @@ public class AlbumAdapter extends Adapter<ImageViewHolder> implements ImageCache
         item.addListener(this);
         TextView label = viewHolder.getLabel();
         label.setText(mCtx.getResources().getQuantityString(R.plurals.folder_title_plural, item.size(), item.getName(), item.size()));
-        viewHolder.bindBitmap(mCache.requestImage(item.getPreview(), index, size, size));
+        Glide.with(mCtx).load(item.getPreview()).into(viewHolder.getImage());
     }
 
     @Override
@@ -120,11 +109,6 @@ public class AlbumAdapter extends Adapter<ImageViewHolder> implements ImageCache
                 return TagManager.getInstance().size();
             default: return 0;
         }
-    }
-
-    @Override
-    public void onBitmapAvailable(File file, int requestId, BitmapWrapper bitmap) {
-        notifyItemChanged(requestId);
     }
 
     @Override
@@ -192,13 +176,6 @@ public class AlbumAdapter extends Adapter<ImageViewHolder> implements ImageCache
     void setViewType(int idx) {
         viewType = idx;
         notifyDataSetChanged();
-    }
-
-    private static class ViewHolder extends RecyclerView.ViewHolder {
-
-        ViewHolder(@NonNull View itemView) {
-            super(itemView);
-        }
     }
 
 }

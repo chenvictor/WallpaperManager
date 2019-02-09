@@ -50,12 +50,6 @@ public abstract class MultiSelectImageActivity extends AppCompatActivity impleme
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        mAdapter.flushCache();
-    }
-
-    @Override
     public void onSelectionChanged(Set<File> selections) {
         if (selections.isEmpty()) {
             toolbar.setTitle(getDefaultTitle());

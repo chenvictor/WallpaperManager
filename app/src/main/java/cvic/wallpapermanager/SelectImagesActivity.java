@@ -125,7 +125,6 @@ public class SelectImagesActivity extends MultiSelectImageActivity {
         private void setPath(File file) {
             current = file;
             files = current.listFiles(FilterUtils.get(FilterUtils.EITHER));
-            flushCache();
             notifyDataSetChanged();
         }
 

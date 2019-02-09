@@ -29,9 +29,9 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import org.json.JSONException;
+import com.bumptech.glide.Glide;
 
-import java.io.File;
+import org.json.JSONException;
 
 import cvic.wallpapermanager.R;
 import cvic.wallpapermanager.SelectImagesActivity;
@@ -44,15 +44,13 @@ import cvic.wallpapermanager.model.album.FolderAlbum;
 import cvic.wallpapermanager.model.album.ImageAlbum;
 import cvic.wallpapermanager.model.album.TagAlbum;
 import cvic.wallpapermanager.service.WPMService;
-import cvic.wallpapermanager.utils.BitmapWrapper;
-import cvic.wallpapermanager.utils.ImageCache;
 
 import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, View.OnClickListener, ImageCache.CacheListener, FolderSelectDialog.ResultListener, TagSelectDialog.ResultListener {
+public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedChangeListener, TextView.OnEditorActionListener, AdapterView.OnItemSelectedListener, FolderSelectDialog.ResultListener, TagSelectDialog.ResultListener, View.OnClickListener {
 
     private static final String TAG = "cvic.wpm.wp_frag";
 
@@ -90,18 +88,8 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     private Album homeAlbum;
     private Album lockAlbum;
 
-    private ImageCache cache;
-
     public WallpaperFragment() {
         // Required empty public constructor
-        cache = new ImageCache(2);  //personal image cache of size 2
-        cache.addListener(this);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        cache.removeListener(this);
     }
 
     @Override
@@ -199,14 +187,13 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
     private void syncAlbums() {
         mHomeAlbumDesc.setText(homeAlbum.getName());
         mLockAlbumDesc.setText(lockAlbum.getName());
-        cache.flush();  //
         if (homeAlbum.getPreview() != null) {
-            mHomeAlbumPreview.setImageBitmap(cache.requestImage(homeAlbum.getPreview(), 0, mHomeAlbumPreview.getMeasuredWidth(), mHomeAlbumPreview.getMeasuredHeight()).getBitmap());
+            Glide.with(this).load(homeAlbum.getPreview()).into(mHomeAlbumPreview);
         } else {
             mHomeAlbumPreview.setImageBitmap(null);
         }
         if (lockAlbum.getPreview() != null) {
-            mLockAlbumPreview.setImageBitmap(cache.requestImage(lockAlbum.getPreview(), 1, mLockAlbumPreview.getMeasuredWidth(), mLockAlbumPreview.getMeasuredHeight()).getBitmap());
+            Glide.with(this).load(lockAlbum.getPreview()).into(mLockAlbumPreview);
         } else {
             mLockAlbumPreview.setImageBitmap(null);
         }
@@ -429,22 +416,6 @@ public class WallpaperFragment extends Fragment implements CheckBox.OnCheckedCha
             return false;
         }
         return (info.getComponent().getClassName().equals(WPMService.class.getName()));
-    }
-
-    @Override
-    public void onBitmapAvailable(File file, int requestId, BitmapWrapper bitmap) {
-        switch (requestId) {
-            case 0:
-                //home
-                Log.i(TAG, "Home bitmap loaded");
-                mHomeAlbumPreview.setImageBitmap(bitmap.getBitmap());
-                break;
-            case 1:
-                //lock
-                Log.i(TAG, "Lock bitmap loaded");
-                mLockAlbumPreview.setImageBitmap(bitmap.getBitmap());
-                break;
-        }
     }
 
     @Override

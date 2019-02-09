@@ -1,16 +1,16 @@
 package cvic.wallpapermanager.ui;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.constraint.Group;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.util.HashSet;
@@ -18,11 +18,9 @@ import java.util.Set;
 
 import cvic.wallpapermanager.ImageViewHolder;
 import cvic.wallpapermanager.R;
-import cvic.wallpapermanager.utils.BitmapWrapper;
 import cvic.wallpapermanager.utils.FilterUtils;
-import cvic.wallpapermanager.utils.ImageCache;
 
-public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<ImageViewHolder> implements ImageCache.CacheListener {
+public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<ImageViewHolder> {
 
     private final String TAG = "cvic.wpm.msia";
 
@@ -39,8 +37,6 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Image
     private boolean multiselect;
     private Set<File> selections;
 
-    private ImageCache cache;
-
     public MultiSelectImageAdapter(MultiSelectListener listener, Context ctx) {
         this (listener, ctx, true);
     }
@@ -51,14 +47,6 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Image
         this.showName = showName;
         multiselect = false;
         selections = new HashSet<>();
-        cache = ImageCache.getMainInstance();
-        cache.addListener(this);
-    }
-
-    @Override
-    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
-        super.onDetachedFromRecyclerView(recyclerView);
-        cache.removeListener(this);
     }
 
     public final void setSize(int size) {
@@ -86,19 +74,10 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Image
     }
 
     @Override
-    public void onViewRecycled(@NonNull ImageViewHolder holder) {
-        super.onViewRecycled(holder);
-        Log.i(TAG, "Recycling: " + holder.getAdapterPosition());
-        if (holder.getAdapterPosition() >= 0) {
-            cache.cancelRequest(getFile(holder.getAdapterPosition()));
-        }
-    }
-
-    @Override
-    public final void onBindViewHolder(@NonNull ImageViewHolder viewHolder, int i) {
-        ImageView image = viewHolder.getImage();
-        TextView label = viewHolder.getLabel();
-        Group overlay = viewHolder.getOverlay();
+    public final void onBindViewHolder(@NonNull ImageViewHolder holder, int i) {
+        ImageView image = holder.getImage();
+        TextView label = holder.getLabel();
+        Group overlay = holder.getOverlay();
         File file = getFile(i);
         if (file.isDirectory()) {
             image.setImageResource(R.drawable.folder_outline);
@@ -111,13 +90,13 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Image
             } else {
                 overlay.setVisibility(View.INVISIBLE);
             }
-            viewHolder.bindBitmap(cache.requestImage(file, i, size, size));
             if (showName) {
                 label.setText(file.getName());
                 label.setVisibility(View.VISIBLE);
             } else {
                 label.setVisibility(View.GONE);
             }
+            Glide.with(ctx).load(file).into(image);
         }
     }
 
@@ -199,15 +178,6 @@ public abstract class MultiSelectImageAdapter extends RecyclerView.Adapter<Image
         selections.clear();
         onSelectionChanged();
         notifyDataSetChanged();
-    }
-
-    public final void flushCache() {
-        cache.flush();
-    }
-
-    @Override
-    public final void onBitmapAvailable(File file, int requestId, BitmapWrapper bitmap) {
-        notifyItemChanged(requestId);
     }
 
     protected abstract void directoryClicked(File file);
